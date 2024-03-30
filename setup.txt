@@ -1,0 +1,11 @@
+https://reactnative.dev/docs/environment-setup?guide=quickstart
+Make sure you have:
+1. Python
+2. Node.js + npx + npm
+3. expo (For react native )
+4. Android command line SDK for emulating in phone (https://developer.android.com/studio#downloads)
+5. react-native-asset
+Then, run:
+npx install npm 
+npx expo start
+
