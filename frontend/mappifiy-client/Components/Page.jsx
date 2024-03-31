@@ -3,7 +3,6 @@ import { StyleSheet, View, Text} from "react-native";
 import theme from "./StaticStyle"
 import { Button } from 'react-native-elements';
 
-
 export function Page() {
     return (
     <View style={styles.container}>
