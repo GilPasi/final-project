@@ -9,6 +9,7 @@ Downloaded node modules:
 1. expo 
 2. react-native-asset
 3. expo-permissions
+4. @react-navigation/native-stack
 
 
 Then, run:
