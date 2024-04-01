@@ -2,14 +2,15 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Accelerometer } from 'expo-sensors';
+import theme from "./StaticStyle"
 
-export function AccelerometerPage() {
+export function AccelerometerScreen() {
   const [ { x, y, z}, setData] = useState({ x: 0, y: 0, z: 0 });
-  
-  useEffect(() => {
+
+    useEffect(() => {
     const subscription = Accelerometer.addListener(setData);
     return () => subscription.remove();
-  }, []);
+    }, []);
 
   return (
     <View style={styles.container}>
@@ -20,16 +21,16 @@ export function AccelerometerPage() {
       <Button title='Fast' onPress={() => Accelerometer.setUpdateInterval(50)} />
       <StatusBar style="auto" />
     </View>
-  );
-}
+  );}
+    const styles = StyleSheet.create({
+      container: {
+        width: "100%",
+        height: "100%",
+        // flex: 1,
+        backgroundColor: theme.colors.background,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+    });
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-
-export default AccelerometerPage
+export default AccelerometerScreen;

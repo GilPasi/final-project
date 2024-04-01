@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-navigation/native-stack": "^6.9.26",
     "expo": "~50.0.14",
     "expo-permissions": "^14.4.0",
     "expo-sensors": "~12.9.1",

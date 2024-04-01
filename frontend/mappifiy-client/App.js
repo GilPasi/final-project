@@ -1,24 +1,25 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import {Page} from "./Components/Page"
-import {AccelerometerPage} from "./Components/AccelerometerPage"
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Page from './Components/Page';
+import {View, Text} from  'react-native'
+import AccelerometerScreen from './Components/AccelerometerScreen';
 
+const Stack = createNativeStackNavigator();
 
-export default function App() {
+function App() {
   return (
-    <View style={styles.container}>
+    <View>
       {/* <Page/> */}
-      <AccelerometerPage/>
-      <StatusBar style="auto" />
+      <AccelerometerScreen/>
     </View>
+    // <NavigationContainer>
+    //   <Stack.Navigator>
+    //     <Stack.Screen name="Home" component={Page} />
+    //     <Stack.Screen name="Details" component={Accelerometer} />
+    //   </Stack.Navigator>
+    // </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
