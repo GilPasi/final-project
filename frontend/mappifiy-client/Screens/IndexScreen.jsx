@@ -2,8 +2,10 @@ import React, { Component } from "react";
 import { StyleSheet, View, Text} from "react-native";
 import theme from "../Components/StaticStyle"
 import { Button } from 'react-native-elements';
-
+import { useNavigation } from '@react-navigation/native';
 export function Page() {
+  const navigation = useNavigation();
+
     return (
     <View style={styles.container}>
         <Text style={styles.title}>Welcom To Mappify!</Text>
@@ -11,8 +13,11 @@ export function Page() {
             title="Start Scan"
             buttonStyle={styles.button}
             titleStyle={styles.buttonText}
-            onPress={()=>console.log("start scan was pressed")}
-            />
+            onPress={() => {
+              console.log("Start Scan button pressed"); // Log message
+              navigation.navigate('Accelerometer'); // Navigate to AccelerometerScreen
+            }}
+          />
 
         <Button 
             title="Search"

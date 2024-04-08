@@ -9,16 +9,18 @@ const Stack = createNativeStackNavigator();
 
 function App() {
   return (
-    <View>
-      <IndexScreen/>
-      <AccelerometerScreen/>
-    </View>
-    // <NavigationContainer>
-    //   <Stack.Navigator>
-    //     <Stack.Screen name="Home" component={Page} />
-    //     <Stack.Screen name="Details" component={Accelerometer} />
-    //   </Stack.Navigator>
-    // </NavigationContainer>
+    // <View>
+    //   <IndexScreen/>
+    //   <AccelerometerScreen/>
+    // </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Index" component={IndexScreen} />
+        <Stack.Screen name="Accelerometer" component={AccelerometerScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+
+
   );
 }
 
