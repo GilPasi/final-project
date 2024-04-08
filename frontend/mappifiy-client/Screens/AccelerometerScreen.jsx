@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Accelerometer } from 'expo-sensors';
-import theme from "./StaticStyle"
+import theme from "../Components/StaticStyle"
 
 export function AccelerometerScreen() {
   const [ { x, y, z}, setData] = useState({ x: 0, y: 0, z: 0 });
