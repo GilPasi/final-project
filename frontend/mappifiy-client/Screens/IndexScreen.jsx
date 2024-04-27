@@ -1,33 +1,44 @@
 import React, { Component } from "react";
-import { StyleSheet, View, Text} from "react-native";
-import theme from "../Components/StaticStyle"
+import { StyleSheet, View, Text } from "react-native";
+import theme from "../Components/StaticStyle";
 import { Button } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
+
 export function Page() {
   const navigation = useNavigation();
 
-    return (
-    <View style={styles.container}>
-        <Text style={styles.title}>Welcom To Mappify!</Text>
-        <Button 
-            title="Start Scan"
-            buttonStyle={styles.button}
-            titleStyle={styles.buttonText}
-            onPress={() => {
-              console.log("Start Scan button pressed"); // Log message
-              navigation.navigate('Accelerometer'); // Navigate to AccelerometerScreen
-            }}
-          />
-
-        <Button 
-            title="Search"
-            buttonStyle={styles.button}
-            titleStyle={styles.buttonText}
-            onPress={()=>console.log("search was pressed")}
-            />
-    </View>
-    );
+  async function fetchData() {
+    try {
+      const response = await axios.get('http://localhost:8000/'); // Replace with your actual API endpoint
+      console.log(response.data); // Handle the response data here
+    } catch (error) {
+      console.error(error); // Handle errors here
+    }
   }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome To Mappify!</Text>
+      <Button
+        title="Start Scan"
+        buttonStyle={styles.button}
+        titleStyle={styles.buttonText}
+        onPress={() => {
+          fetchData(); // Call the fetchData function here
+          console.log("Start Scan button pressed");
+          navigation.navigate('Accelerometer');
+        }}
+      />
+      <Button
+        title="Search"
+        buttonStyle={styles.button}
+        titleStyle={styles.buttonText}
+        onPress={() => console.log("search was pressed")}
+      />
+    </View>
+  );
+}
   const styles = StyleSheet.create({
     container: {
       width: "100%",

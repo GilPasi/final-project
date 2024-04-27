@@ -13,12 +13,14 @@ function App() {
     //   <IndexScreen/>
     //   <AccelerometerScreen/>
     // </View>
+ 
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator>  
         <Stack.Screen name="Index" component={IndexScreen} />
         <Stack.Screen name="Accelerometer" component={AccelerometerScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+    
 
 
   );
