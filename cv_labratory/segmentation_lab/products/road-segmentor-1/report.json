@@ -1,0 +1,14 @@
+{
+    "Dataset": "road-dataset.zip",
+    "Model": "Unet",
+    "Backbone": "resnet34",
+    "Image_resize": "256X256",
+    "Optimizer": "Adam",
+    "Loss Function": "BinaryFocalLoss",
+    "None Loss Metrics": [
+        "iou_score",
+        "f1-score"
+    ],
+    "Loss": 0.023864621296525,
+    "Accuracy": 0.9198282957077026
+}
