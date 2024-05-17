@@ -17,7 +17,15 @@ from segmentor import Segmentor
 
 def main ():
 
-    # assert np.shape(seg_prediction)==np.shape(depth_prediction),"seg shape is different than dep shape"
+    image_path = "/Users/gilpasi/Desktop/study/year-3/final-project/project/mappify/backend/algorithm/input/1.png"
+
+    seg_analyser = Segmentor()
+    dep_analysr = DepthExtractor()
+
+    seg_prediction = seg_analyser.predict(image_path)
+    dep_prediction = dep_analysr.predict(image_path)
+    assert type(seg_analyser) == type(dep_analysr)
+    assert np.shape(seg_prediction)==np.shape(dep_prediction),"seg shape is different than dep shape"
     print("SUCCESS")
 
 

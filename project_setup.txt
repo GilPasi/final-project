@@ -1,2 +1,0 @@
-1. Define environment variable "MAPPIFY" which is the base dir of this project
-2. create conda environments for ZoeDepth and Segmentation Models from their ymls
