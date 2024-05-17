@@ -2,3 +2,22 @@
 git clone git@github.com:isl-org/ZoeDepth.git lib
 conda create -f setup/seg_env.yml
 conda create -f setup/zoe_env.yml
+
+# https://reactnative.dev/docs/environment-setup?guide=quickstart
+# Make sure you have:
+# 1. Python
+# 2. Node.js + npx + npm
+# 3. expo (For react native )
+# 4. Android command line SDK for emulating in phone (https://developer.android.com/studio#downloads)
+
+# Downloaded node modules:
+# 1. expo 
+# 2. react-native-asset
+# 3. expo-permissions
+# 4. @react-navigation/native-stack
+
+
+# Then, run:
+# npm install
+# npx expo start
+
