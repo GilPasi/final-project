@@ -46,7 +46,7 @@ class DepthExtractor():
         image = Image.open(absolute_image_path).convert("RGB")
         return image
     
-    def get_depth(self, image_path: str):
+    def predict(self, image_path: str):
         is_absolute_path = os.path.exists(image_path)
         if not is_absolute_path:
             image_path = os.path.join(self.input_path, image_path)
@@ -77,7 +77,7 @@ class DepthExtractor():
 # Demo for debugging
 if __name__ == "__main__":
     depth_extractor = DepthExtractor()
-    depth_numpy = depth_extractor.get_depth("1.png") 
+    depth_numpy = depth_extractor.predict("1.png") 
     print(depth_numpy)
 
 
