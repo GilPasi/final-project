@@ -2,18 +2,10 @@ import torch
 import sys
 import os
 from PIL import Image
-# WARNING: do not change the location of this function in 
-# order to avoid bugs.
-def _get_mappify_root_dir():
-    variable_name = 'MAPPIFY'
-    mappify_path = os.getenv(variable_name, None)
-    if mappify_path is None:
-        raise ImportError("Mappify is not configured"
-                         " properly to your environment variables,"
-                         " re-configure and restart your IDE")
-    return mappify_path
+from utils import infer_absolute_path
+from utils import get_mappify_root_dir
 
-zoe_directory = os.path.join(_get_mappify_root_dir(),"backend/lib/ZoeDepth")
+zoe_directory = os.path.join(get_mappify_root_dir(),"backend", "lib", "ZoeDepth")
 sys.path.append(zoe_directory)
 from zoedepth.models.builder import build_model
 from zoedepth.utils.config import get_config
@@ -27,8 +19,8 @@ class DepthExtractor():
         model_zoe_n = DepthExtractor._get_zoe_instance()
         proccessing_unit = self._current_machine_pu()
         self._zoe = model_zoe_n.to(proccessing_unit)
-
-        self.input_path = "cv_labratory/depth_analysis_lab/input" # Default, expected to change after the server is set
+        self.input_path = os.path.join(get_mappify_root_dir(), 
+                                       "backend","algorithm","input") # Default, expected to change after the server is set
     
     @classmethod
     def _get_zoe_instance(cls):
@@ -47,14 +39,7 @@ class DepthExtractor():
         return image
     
     def predict(self, image_path: str):
-        is_absolute_path = os.path.exists(image_path)
-        if not is_absolute_path:
-            image_path = os.path.join(self.input_path, image_path)
-        if not os.path.exists(image_path): 
-            raise ValueError("The given image path{image_path} is"
-                             " neither absolute nor a valid image\n "
-                             "name in the directory {self.imput_path}."
-                             "Try to re-configure the image path or use an absoulte path.")
+        image_path = infer_absolute_path(image_path, self.input_path) 
         image = self._load_image(image_path)
         return depth_extractor._zoe.infer_pil(image)
 

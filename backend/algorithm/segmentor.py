@@ -6,6 +6,7 @@ import keras
 import cv2
 import matplotlib.pyplot as plt
 
+from utils import infer_absolute_path
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
@@ -34,23 +35,14 @@ class Segmentor():
 
     @classmethod
     def _recreate_model(cls):
-        LAB_PATH = os.getcwd()
-        MODEL_NAME = "road_segmentor"
-        MODEL_PATH = os.path.join(LAB_PATH,"cv_labratory",
-                "segmentation_lab","products", MODEL_NAME,"model.keras" )
-        model = load_model(MODEL_PATH,compile=False)
+        root_dir = os.getcwd() # The script is running from the root
+        model_path = os.path.join( root_dir, "backend", "algorithm", "segmentor", "model.keras")
+        model = load_model(model_path, compile=False)
         cls._custom_compile(model)
         return model
 
     def predict(self, image_path):
-        # TODO: remove code duplications with zoe
-        is_absolute_path = os.path.exists(image_path)
-        if not is_absolute_path:
-            image_path = os.path.join(self.input_path, image_path)
-        if not os.path.exists(image_path): 
-            raise ValueError(f"The given image path{image_path} is"
-                             f" neither absolute nor a valid image\n "
-                             f"name in the directory {self.input_path}.") 
+        image_path = infer_absolute_path(image_path, self.input_path) 
         single_image_array = self._load_images([image_path])
         prediction = self._model.predict(single_image_array)
         prediction = np.where(prediction > self.threshhold, 1, 0)
