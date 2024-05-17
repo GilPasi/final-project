@@ -32,7 +32,6 @@ class Segmentor():
         metrics = [sm.metrics.IOUScore(threshold=0.5), sm.metrics.FScore(threshold=0.5)]
         model.compile('Adam', loss=BinaryFocalLoss(gamma=2), metrics=metrics)
 
-# TODO: remove the segmentor to inside of the package
     @classmethod
     def _recreate_model(cls):
         LAB_PATH = os.getcwd()
@@ -42,7 +41,6 @@ class Segmentor():
         model = load_model(MODEL_PATH,compile=False)
         cls._custom_compile(model)
         return model
-        
 
     def predict(self, image_path):
         # TODO: remove code duplications with zoe
@@ -50,9 +48,9 @@ class Segmentor():
         if not is_absolute_path:
             image_path = os.path.join(self.input_path, image_path)
         if not os.path.exists(image_path): 
-            raise ValueError("The given image path{image_path} is"
-                             " neither absolute nor a valid image\n "
-                             "name in the directory {self.imput_path}.") 
+            raise ValueError(f"The given image path{image_path} is"
+                             f" neither absolute nor a valid image\n "
+                             f"name in the directory {self.input_path}.") 
         single_image_array = self._load_images([image_path])
         prediction = self._model.predict(single_image_array)
         prediction = np.where(prediction > self.threshhold, 1, 0)
@@ -85,7 +83,9 @@ def plot_image_mask_result(mask):
 
 if __name__ == "__main__": 
     segmentor = Segmentor()
-    seg_prediction = segmentor.predict("/Users/gilpasi/Desktop/study/year-3/final-project/project/mappify/cv_labratory/depth_analysis_lab/input/1.png")
+    segmentor.input_path = "/Users/gilpasi/Desktop/study/year-3/final-project/project/mappify/backend/algorithm/input/"
+    seg_prediction = segmentor.predict("1.png")
     print(np.shape(seg_prediction))
     print(seg_prediction)
     plot_image_mask_result(seg_prediction[0])
+    input("Press enter to exit\n")
