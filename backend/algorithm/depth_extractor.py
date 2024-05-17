@@ -18,34 +18,49 @@ sys.path.append(zoe_directory)
 from zoedepth.models.builder import build_model
 from zoedepth.utils.config import get_config
 from zoedepth.utils.misc import pil_to_batched_tensor
-from zoedepth.utils.misc import save_raw_16bit
-from zoedepth.utils.misc import colorize
  
 class DepthExtractor(): 
-    def __init__(self, device):
+    _zoe_instance = None
+
+    def __init__(self):
         self._conf = get_config("zoedepth", "infer")
-        model_zoe_n = build_model(self._conf)
-        self._zoe = model_zoe_n.to(device)
+        model_zoe_n = DepthExtractor._get_zoe_instance()
+        proccessing_unit = self._current_machine_pu()
+        self._zoe = model_zoe_n.to(proccessing_unit)
 
-    def list_files(self, directory):
-        files = []
-        for filename in os.listdir(directory):
-            path = os.path.join(directory, filename)
-            if os.path.isfile(path):
-                files.append(filename)
-            else: 
-                raise TypeError(f"The directory {path} was found in the input directory"
-                                "remove it to prevent missing data and run again")
-        return files
+        self.input_path = "cv_labratory/depth_analysis_lab/input" # Default, expected to change after the server is set
+    
+    @classmethod
+    def _get_zoe_instance(cls):
+        conf = get_config("zoedepth", "infer")
+        if cls._zoe_instance is None:
+            cls._zoe_instance = build_model(conf)
+        return cls._zoe_instance
+        
+    def _current_machine_pu(self):
+        return "cuda" if torch.cuda.is_available() else "cpu"
 
-    def load_image(self, image_name, image_relative_path="cv_labratory/depth_analysis_lab/input"):
-
+    def _load_image(self, image_relative_path: str):
         mappify_path = _get_mappify_root_dir()
-        absolute_image_path = os.path.join(mappify_path, image_relative_path, image_name)
+        absolute_image_path = os.path.join(mappify_path, image_relative_path)
         image = Image.open(absolute_image_path).convert("RGB")
         return image
+    
+    def get_depth(self, image_path: str):
+        is_absolute_path = os.path.exists(image_path)
+        if not is_absolute_path:
+            image_path = os.path.join(self.input_path, image_path)
+        if not os.path.exists(image_path): 
+            raise ValueError("The given image path{image_path} is"
+                             " neither absolute nor a valid image\n "
+                             "name in the directory {self.imput_path}."
+                             "Try to re-configure the image path or use an absoulte path.")
+        image = self._load_image(image_path)
+        return depth_extractor._zoe.infer_pil(image)
 
     def _save_product(self, depth, image_name, output_relative_path="cv_labratory/depth_analysis_lab/output/"):
+        from zoedepth.utils.misc import save_raw_16bit
+        from zoedepth.utils.misc import colorize
         # This method is not actually required on production since there is no need to see the products.
         colored_image_name = "colored_" + image_name
         mappify_path = _get_mappify_root_dir()
@@ -59,17 +74,15 @@ class DepthExtractor():
         # save colored output
         Image.fromarray(colored).save(absolute_colored_output_path)
 
-
 # Demo for debugging
 if __name__ == "__main__":
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    depth_extractor = DepthExtractor(DEVICE)
-    image = depth_extractor.load_image("1.png") 
-
-    depth_numpy = depth_extractor._zoe.infer_pil(image)  # as numpy
-    depth_pil = depth_extractor._zoe.infer_pil(image, output_type="pil")  # as 16-bit PIL Image
-    depth_tensor = depth_extractor._zoe.infer_pil(image, output_type="tensor")  # as torch tensor
-    X = pil_to_batched_tensor(image).to(DEVICE)
-    depth_tensor = depth_extractor._zoe.infer(X)
-    depth = depth_extractor._zoe.infer_pil(image)
+    depth_extractor = DepthExtractor()
+    depth_numpy = depth_extractor.get_depth("1.png") 
     print(depth_numpy)
+
+
+    # Additional capabilites of ZoeDepth for a potential development
+    # depth_pil = depth_extractor._zoe.infer_pil(image, output_type="pil")  # as 16-bit PIL Image
+    # depth_tensor = depth_extractor._zoe.infer_pil(image, output_type="tensor")  # as torch tensor
+    # X = pil_to_batched_tensor(image).to(DEVICE)
+    # depth_tensor = depth_extractor._zoe.infer(X)
