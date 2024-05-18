@@ -4,6 +4,7 @@ import os
 from PIL import Image
 from utils import infer_absolute_path
 from utils import get_mappify_root_dir
+from utils import get_default_input_path
 
 zoe_directory = os.path.join(get_mappify_root_dir(),"backend", "lib", "ZoeDepth")
 sys.path.append(zoe_directory)
@@ -19,8 +20,7 @@ class DepthExtractor():
         model_zoe_n = DepthExtractor._get_zoe_instance()
         proccessing_unit = self._current_machine_pu()
         self._zoe = model_zoe_n.to(proccessing_unit)
-        self.input_path = os.path.join(get_mappify_root_dir(), 
-                                       "backend","algorithm","input") # Default, expected to change after the server is set
+        self.input_path = get_default_input_path()
     
     @classmethod
     def _get_zoe_instance(cls):

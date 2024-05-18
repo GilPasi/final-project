@@ -17,3 +17,8 @@ def get_mappify_root_dir():
                          " properly to your environment variables,"
                          " re-configure and restart your IDE")
     return mappify_path
+
+
+def get_default_input_path():
+    return os.path.join(
+        get_mappify_root_dir(), "backend","algorithm","input") 

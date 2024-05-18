@@ -7,6 +7,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 from utils import infer_absolute_path
+from utils import get_default_input_path
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
@@ -15,7 +16,8 @@ class Segmentor():
     _segmention_model_instance = None 
 
     def __init__(self):
-        self.input_path = "cv_labratory/depth_analysis_lab/input" # Default, expected to change after the server is set
+        print("1")
+        self.input_path = get_default_input_path() 
         self._model = Segmentor._get_segmentation_model_instance()
         self.threshhold = 0.07 # De facto works better for 0.07
         self.resize = (256, 256)
@@ -73,11 +75,11 @@ def plot_image_mask_result(mask):
     axs[0].imshow(mask, cmap='gray')
     plt.show()
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     segmentor = Segmentor()
-    segmentor.input_path = "/Users/gilpasi/Desktop/study/year-3/final-project/project/mappify/backend/algorithm/input/"
-    seg_prediction = segmentor.predict("1.png")
-    print(np.shape(seg_prediction))
-    print(seg_prediction)
-    plot_image_mask_result(seg_prediction[0])
-    input("Press enter to exit\n")
+    # segmentor.input_path = "/Users/gilpasi/Desktop/study/year-3/final-project/project/mappify/backend/algorithm/input/"
+    # seg_prediction = segmentor.predict("1.png")
+    # print(np.shape(seg_prediction))
+    # print(seg_prediction)
+    # plot_image_mask_result(seg_prediction[0])
+    # input("Press enter to exit\n")
