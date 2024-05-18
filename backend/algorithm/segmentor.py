@@ -5,9 +5,12 @@ import numpy as np
 import keras
 import cv2
 import matplotlib.pyplot as plt
+import sys
+import pickle
 
 from utils import infer_absolute_path
 from utils import get_default_input_path
+from utils import get_mappify_root_dir
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
@@ -16,7 +19,6 @@ class Segmentor():
     _segmention_model_instance = None 
 
     def __init__(self):
-        print("1")
         self.input_path = get_default_input_path() 
         self._model = Segmentor._get_segmentation_model_instance()
         self.threshhold = 0.07 # De facto works better for 0.07
@@ -37,7 +39,7 @@ class Segmentor():
 
     @classmethod
     def _recreate_model(cls):
-        root_dir = os.getcwd() # The script is running from the root
+        root_dir = get_mappify_root_dir()
         model_path = os.path.join( root_dir, "backend", "algorithm", "segmentor", "model.keras")
         model = load_model(model_path, compile=False)
         cls._custom_compile(model)
@@ -77,9 +79,8 @@ def plot_image_mask_result(mask):
 
 if __name__ == "__main__":
     segmentor = Segmentor()
-    # segmentor.input_path = "/Users/gilpasi/Desktop/study/year-3/final-project/project/mappify/backend/algorithm/input/"
-    # seg_prediction = segmentor.predict("1.png")
-    # print(np.shape(seg_prediction))
-    # print(seg_prediction)
+    seg_prediction = segmentor.predict("1.png")
+    serialized_data = pickle.dumps(seg_prediction)
+    sys.stdout.buffer.write(serialized_data)
     # plot_image_mask_result(seg_prediction[0])
     # input("Press enter to exit\n")
