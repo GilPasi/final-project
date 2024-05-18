@@ -11,6 +11,8 @@ import pickle
 from utils import infer_absolute_path
 from utils import get_default_input_path
 from utils import get_mappify_root_dir
+from utils import ipc_file_path
+from utils import SNAPSHOT_SIZE
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
@@ -22,7 +24,6 @@ class Segmentor():
         self.input_path = get_default_input_path() 
         self._model = Segmentor._get_segmentation_model_instance()
         self.threshhold = 0.07 # De facto works better for 0.07
-        self.resize = (256, 256)
     
     @classmethod
     def _get_segmentation_model_instance(cls):
@@ -67,7 +68,7 @@ class Segmentor():
     def _load_image(self, image_path):
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, self.resize)
+        image = cv2.resize(image, SNAPSHOT_SIZE)
         return image 
 
 # For debugging
@@ -78,9 +79,11 @@ def plot_image_mask_result(mask):
     plt.show()
 
 if __name__ == "__main__":
+    ENVIRONMENT_NAME = "segenv"
     segmentor = Segmentor()
     seg_prediction = segmentor.predict("1.png")
-    serialized_data = pickle.dumps(seg_prediction)
-    sys.stdout.buffer.write(serialized_data)
+    with open(ipc_file_path(ENVIRONMENT_NAME), 'wb') as file:
+        pickle.dump(seg_prediction, file)
+
     # plot_image_mask_result(seg_prediction[0])
     # input("Press enter to exit\n")

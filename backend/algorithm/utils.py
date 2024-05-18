@@ -1,4 +1,6 @@
 import os 
+SNAPSHOT_SIZE = (256, 256)
+
 def infer_absolute_path(image_path, input_path):
     is_absolute_path = os.path.exists(image_path)
     if not is_absolute_path:
@@ -18,7 +20,15 @@ def get_mappify_root_dir():
                          " re-configure and restart your IDE")
     return mappify_path
 
-
 def get_default_input_path():
     return os.path.join(
         get_mappify_root_dir(), "backend","algorithm","input") 
+
+def get_algorithm_dir():
+    return os.path.join(get_mappify_root_dir(), "backend", "algorithm")
+
+def ipc_file_path(env_name):
+    file_name = f"{env_name}_ipc.pkl"
+    path = os.path.join(get_mappify_root_dir(), "backend", "algorithm", file_name)
+    return path
+    

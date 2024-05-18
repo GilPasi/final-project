@@ -1,0 +1,2 @@
+1. make the analysis process faster using pipes rather than file system.
+2. make the segmentation model better by expanding the dataset, using augmentation and examining other pre-made models.
