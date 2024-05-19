@@ -5,8 +5,14 @@ import numpy as np
 import keras
 import cv2
 import matplotlib.pyplot as plt
+import sys
+import pickle
 
-from utils import infer_absolute_path
+from utils import list_directory_contents
+from utils import get_default_input_path
+from utils import get_mappify_root_dir
+from utils import ipc_file_path
+from utils import SNAPSHOT_SIZE
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
@@ -15,10 +21,10 @@ class Segmentor():
     _segmention_model_instance = None 
 
     def __init__(self):
-        self.input_path = "cv_labratory/depth_analysis_lab/input" # Default, expected to change after the server is set
+        self.input_path = get_default_input_path() 
         self._model = Segmentor._get_segmentation_model_instance()
         self.threshhold = 0.07 # De facto works better for 0.07
-        self.resize = (256, 256)
+        self.threshhold = 0.5
     
     @classmethod
     def _get_segmentation_model_instance(cls):
@@ -35,49 +41,48 @@ class Segmentor():
 
     @classmethod
     def _recreate_model(cls):
-        root_dir = os.getcwd() # The script is running from the root
+        root_dir = get_mappify_root_dir()
         model_path = os.path.join( root_dir, "backend", "algorithm", "segmentor", "model.keras")
         model = load_model(model_path, compile=False)
         cls._custom_compile(model)
         return model
 
-    def predict(self, image_path):
-        image_path = infer_absolute_path(image_path, self.input_path) 
-        single_image_array = self._load_images([image_path])
-        prediction = self._model.predict(single_image_array)
-        prediction = np.where(prediction > self.threshhold, 1, 0)
-        return prediction
-
-    def predict_multiple(self, samples_path):
-        sample_data = self._load_images(samples_path)
+    def predict(self):
+        sample_data = self._load_images()
         prediction = self._model.predict(sample_data)
         prediction = np.where(prediction > self.threshhold, 1, 0)
-        return prediction
+        return np.squeeze(prediction)
     
-    def _load_images(self, images_paths: list):
-        images = [self._load_image(path) for path in images_paths
-                   if ".DS_Store" not in path]
-        return np.array(images)
+    def _load_images(self, all_images_paths: list = []):
+        if all_images_paths == []:
+            all_images_paths = list_directory_contents(
+                self.input_path, allowed_extentsions=[".png", ".jpeg", ".jpg"])
+        all_images = [self._load_image(img) for img in all_images_paths]
+        return np.array(all_images)
 
     
     def _load_image(self, image_path):
         image = cv2.imread(image_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, self.resize)
+        image = cv2.resize(image, SNAPSHOT_SIZE)
+
         return image 
 
 # For debugging
-def plot_image_mask_result(mask):
+def plot_image_mask_result(mask1, mask2, mask3):
     import matplotlib.pyplot as plt
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-    axs[0].imshow(mask, cmap='gray')
+    fig, axs = plt.subplots(1, 3, figsize=(10, 5))
+    axs[0].imshow(mask1, cmap='gray')
+    axs[1].imshow(mask2, cmap='gray')
+    axs[2].imshow(mask3, cmap='gray')
     plt.show()
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
+    ENVIRONMENT_NAME = "segenv"
     segmentor = Segmentor()
-    segmentor.input_path = "/Users/gilpasi/Desktop/study/year-3/final-project/project/mappify/backend/algorithm/input/"
-    seg_prediction = segmentor.predict("1.png")
-    print(np.shape(seg_prediction))
-    print(seg_prediction)
-    plot_image_mask_result(seg_prediction[0])
-    input("Press enter to exit\n")
+    seg_prediction = segmentor.predict()
+    with open(ipc_file_path(ENVIRONMENT_NAME), 'wb') as file:
+        pickle.dump(seg_prediction, file)
+
+    # plot_image_mask_result(seg_prediction[0],seg_prediction[1], seg_prediction[2])
+    # input("Press enter to exit\n")
