@@ -2,13 +2,14 @@ import torch
 import sys
 import os
 import pickle
-
+import numpy as np
 from PIL import Image
 from utils import infer_absolute_path
 from utils import get_mappify_root_dir
 from utils import get_default_input_path
 from utils import ipc_file_path
 from utils import SNAPSHOT_SIZE
+from utils import list_directory_contents
 zoe_directory = os.path.join(get_mappify_root_dir(),"backend", "lib", "ZoeDepth")
 sys.path.append(zoe_directory)
 from zoedepth.models.builder import build_model
@@ -34,18 +35,25 @@ class DepthExtractor():
         
     def _current_machine_pu(self):
         return "cuda" if torch.cuda.is_available() else "cpu"
-
-    def _load_image(self, image_relative_path: str):
-        mappify_path = get_mappify_root_dir()
-        absolute_image_path = os.path.join(mappify_path, image_relative_path)
-        image = Image.open(absolute_image_path).convert("RGB")
-        image = image.resize(SNAPSHOT_SIZE)
-        return image
     
-    def predict(self, image_path: str):
-        image_path = infer_absolute_path(image_path, self.input_path) 
-        image = self._load_image(image_path)
-        return self._zoe.infer_pil(image)
+
+    def _load_images(self, all_images_paths: list = []):
+        if all_images_paths == []:
+            all_images_paths = list_directory_contents(
+                self.input_path, allowed_extentsions=[".png", ".jpeg", ".jpg"])
+        mappify_path = get_mappify_root_dir()
+        return [
+            Image
+                .open(os.path.join(mappify_path, image_path))
+                .convert("RGB")
+                .resize(SNAPSHOT_SIZE) 
+            for image_path in all_images_paths
+        ]
+    
+    def predict(self):
+        images = self._load_images()
+        all_predictions = [self._zoe.infer_pil(img) for img in images]
+        return np.array(all_predictions)
 
     def _save_product(self, depth, image_name, output_relative_path="cv_labratory/depth_analysis_lab/output/"):
         from zoedepth.utils.misc import save_raw_16bit
@@ -66,7 +74,7 @@ class DepthExtractor():
 if __name__ == "__main__":
     ENVIRONMENT_NAME = "zoe"
     segmentor = DepthExtractor()
-    seg_prediction = segmentor.predict("1.png")
+    seg_prediction = segmentor.predict()
     with open(ipc_file_path(ENVIRONMENT_NAME), 'wb') as file:
         pickle.dump(seg_prediction, file)
 

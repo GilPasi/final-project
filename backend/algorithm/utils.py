@@ -31,4 +31,18 @@ def ipc_file_path(env_name):
     file_name = f"{env_name}_ipc.pkl"
     path = os.path.join(get_mappify_root_dir(), "backend", "algorithm", file_name)
     return path
+
+def list_directory_contents(directory_path, allowed_extentsions=[]):
+    """Lists the names and paths of all files and directories in the specified directory."""
     
+    entries = os.listdir(directory_path)
+    all_contents = []
+    allow_all = allowed_extentsions == [] 
+
+    for entry in entries:
+        root, ext = os.path.splitext(entry) # Get extention
+        if allow_all or ext in allowed_extentsions:
+            full_path = os.path.join(directory_path, entry)
+            all_contents.append(full_path)
+    return all_contents
+

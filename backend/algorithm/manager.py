@@ -23,8 +23,6 @@ def parallel_predict(script_path, env_name):
 
 
 def main ():
-    image_path = "1.png"
-
     segmentor_script_path = os.path.join(get_algorithm_dir(), "segmentor.py")
     depth_extractor_script_path = os.path.join(get_algorithm_dir(), "depth_extractor.py")
 
@@ -41,10 +39,6 @@ def main ():
 
 if __name__ == "__main__":
     main()
-
-
-
-
 
     
 
