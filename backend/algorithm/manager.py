@@ -92,8 +92,8 @@ def get_predictions():
 
 def smart_crop(matrix_to_crop: np.array):
     first_line_with_positive_cell = find_first_positive_row(matrix_to_crop, MINIMUM_LIGHT_PIXELS_IN_LINE)
+    first_line_with_positive_cell = min(first_line_with_positive_cell, SNAPSHOT_SIZE[1] - slice_size())
 
-    # TODO: What if first line is greater than 256 - 64
     matrix_to_crop = matrix_to_crop[
         first_line_with_positive_cell:
         first_line_with_positive_cell + slice_size()]
