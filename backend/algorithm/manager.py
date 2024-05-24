@@ -11,6 +11,7 @@ import logging
 
 from PIL import Image
 from damaged_snapshot_exception import DamagedSnapshotException
+from width_estimating import normalize
 from utils import get_algorithm_dir,ipc_file_path, SNAPSHOT_SIZE, slice_size,\
 MINIMUM_LIGHT_PIXELS_IN_LINE, list_directory_contents, get_default_input_path
 
@@ -50,7 +51,7 @@ def _present_image(depth_sample = None, segmentation_sample = None,
 
     if combined_sample is not None:
         axs[1, 0].imshow(combined_sample, cmap='gray')
-        axs[1, 0].set_title('Conbined Representation')
+        axs[1, 0].set_title('Combined Representation')
         axs[1, 0].axis('off')
 
     if image_path is not None: 
@@ -134,10 +135,13 @@ def main():
     
     INDEX = 1
     cropped_array = crop_prediction(combined_prediction)
+    normal_array = normalize(cropped_array[0])
+    
         
     _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
-                cropped_array[INDEX],f"backend/algorithm/input/dog_walk_{INDEX + 1}.png")
- 
+                normal_array,f"backend/algorithm/input/dog_walk_{INDEX + 1}.png")
+
+    input("Press enter")
 
 
 if __name__ == "__main__":

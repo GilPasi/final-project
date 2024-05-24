@@ -1,37 +1,94 @@
 import math
 import numpy as np 
-def calculate_object_width(focal_length, sensor_width, distance, object_pixel_width, image_width):
-    """
-    Calculate the width of an object in a picture given the camera specs and object distance.
 
-    :param focal_length: Focal length of the lens (mm)
-    :param sensor_width: Sensor width (mm)
-    :param distance: Distance to the object (meters)
-    :param object_pixel_width: Width of the object in pixels
-    :param image_width: Total width of the image in pixels
-    :return: Width of the object in meters
-    """
-    # Focal length can be achieved using react native
-    focal_length_m = focal_length / 1000
-    
-    sensor_width_m = sensor_width / 1000
+def get_stripe_range(stripe: np.ndarray):
+    start = end = 0 
 
-    fov_rad = 2 * math.atan(sensor_width_m / (2 * focal_length_m))
-
-    width_at_distance = 2 * distance * math.tan(fov_rad / 2)
-
-    actual_width = (object_pixel_width / image_width) * width_at_distance
-
-    return actual_width
-
+    for i in range(len(stripe)): 
+        if start == 0 and stripe[i] > 0: 
+            start = i
+        if end == 0 and stripe[-i] > 0:
+            end = len(stripe) - i
+        if end != 0 and start != 0:
+            break 
+    return start, end
 
 def get_stripe_width(stripe: np.ndarray):
-    start = end = 0
-    for i in stripe: 
-        if start == 0 and i > 0: 
-            start = i
-        elif start != 0 and i > 0:
-            end = i
-            return 
+    start, end = get_stripe_range(stripe)
     return end - start
+
+def get_average_depth(stripe: np.ndarray):
+    start, end =  get_stripe_range(stripe)
+    return sum(stripe[start:end+1]) / (end - start + 1)
+
+
+def calculate_real_life_width(pixels, focal_length, sensor_width):
+    # Find the indices of the non-zero pixels
+    non_zero_indices = np.where(pixels > 0)[0]
+
+    # If there are no non-zero pixels, return 0
+    if non_zero_indices.size == 0:
+        return 0, 0
+
+    # Calculate the depth at each non-zero pixel
+    depths = pixels[non_zero_indices]
+    
+    # Calculate the average depth of the non-zero sequence
+    avg_depth = np.mean(depths)
+    
+    # Calculate the field of view (FOV) in radians
+    fov = 2 * np.arctan(sensor_width / (2 * focal_length))
+    
+    # Calculate the pixel width of the object (length of the non-zero sequence)
+    pixel_width = non_zero_indices[-1] - non_zero_indices[0] + 1
+    
+    # Calculate the width at the average depth
+    width_at_avg_depth = 2 * avg_depth * np.tan(fov / 2)
+    
+    # Scale the pixel width to real-life width
+    real_life_width = width_at_avg_depth * (pixel_width / len(pixels))
+        
+    return real_life_width
+
+
+def normalize(image):
+    FOCAL_WIDTH = 26
+    SENSOR_WIDTH = 11.95
+
+    real_width_base_stripe = calculate_real_life_width(
+        image[-1], FOCAL_WIDTH, SENSOR_WIDTH)
+    pixel_width_base_stripe = calculate_stripe_pixels(image[-1])
+    
+    for stripe in image: 
+        real_width_current_stripe = calculate_real_life_width(
+            stripe, FOCAL_WIDTH, SENSOR_WIDTH)
+        real_ratio = real_width_current_stripe / real_width_base_stripe
+        new_current_stripe_width = int(pixel_width_base_stripe * real_ratio)
+        new_stripe = enlarge_stripe(stripe, new_current_stripe_width)
+        image[0, :] = new_stripe
+        
+    return image
+
+def enlarge_stripe(stripe: np.ndarray, new_width: int):
+    stripe_middle = calculate_middle_point(stripe)
+    new_width = min(new_width, stripe.shape[0]) # Avoid Out of bound
+    
+    for i in range(stripe_middle + 1):
+        if stripe_middle - i >= 0:
+            stripe[stripe_middle - i] = 5
+        if stripe_middle + i < len(stripe):
+            stripe[stripe_middle + i] = 5
+    return stripe
+
+def calculate_middle_point(stripe: np.ndarray):
+    start, end = get_stripe_range(stripe)
+    return start + calculate_stripe_pixels(stripe) // 2
+
+    
+def calculate_stripe_pixels(stripe: np.ndarray):
+    start, end = get_stripe_range(stripe)
+    return int(end - start)
+        
+    
+    
         
