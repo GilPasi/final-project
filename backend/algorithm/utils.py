@@ -1,5 +1,6 @@
 import os 
 SNAPSHOT_SIZE = (256, 256)
+MINIMUM_LIGHT_PIXELS_IN_LINE = 50
 
 def infer_absolute_path(image_path, input_path):
     is_absolute_path = os.path.exists(image_path)
@@ -40,9 +41,15 @@ def list_directory_contents(directory_path, allowed_extentsions=[]):
     allow_all = allowed_extentsions == [] 
 
     for entry in entries:
-        root, ext = os.path.splitext(entry) # Get extention
+        root, ext = os.path.splitext(entry) 
         if allow_all or ext in allowed_extentsions:
             full_path = os.path.join(directory_path, entry)
             all_contents.append(full_path)
     return all_contents
+
+def slice_size():
+    # This is a method since calculating the slice size
+    # might change dramtiacally and even dinamically
+    DIVIDE_FACTOR = 4 
+    return int(SNAPSHOT_SIZE[0] / DIVIDE_FACTOR)
 
