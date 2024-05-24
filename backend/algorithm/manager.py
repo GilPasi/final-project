@@ -133,11 +133,11 @@ def main():
     combined_prediction = seg_prediction * dep_prediction
     
     INDEX = 1
-    cropped_array = crop_prediction(combined_prediction)[INDEX]
+    cropped_array = crop_prediction(combined_prediction)
         
     _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
-                cropped_array,f"backend/algorithm/input/dog_walk_{INDEX + 2}.png")
-    input("Press enter to exit \n ")
+                cropped_array[INDEX],f"backend/algorithm/input/dog_walk_{INDEX + 1}.png")
+ 
 
 
 if __name__ == "__main__":
