@@ -30,22 +30,12 @@ def calculate_real_life_width(pixels, focal_length, sensor_width):
     if non_zero_indices.size == 0:
         return 0, 0
 
-    # Calculate the depth at each non-zero pixel
     depths = pixels[non_zero_indices]
-    
-    # Calculate the average depth of the non-zero sequence
     avg_depth = np.mean(depths)
-    
-    # Calculate the field of view (FOV) in radians
     fov = 2 * np.arctan(sensor_width / (2 * focal_length))
-    
-    # Calculate the pixel width of the object (length of the non-zero sequence)
     pixel_width = non_zero_indices[-1] - non_zero_indices[0] + 1
-    
-    # Calculate the width at the average depth
     width_at_avg_depth = 2 * avg_depth * np.tan(fov / 2)
     
-    # Scale the pixel width to real-life width
     real_life_width = width_at_avg_depth * (pixel_width / len(pixels))
         
     return real_life_width
@@ -55,30 +45,37 @@ def normalize(image):
     FOCAL_WIDTH = 26
     SENSOR_WIDTH = 11.95
 
+    middle_stripe_idx = len(image) // 2
+
     real_width_base_stripe = calculate_real_life_width(
-        image[-1], FOCAL_WIDTH, SENSOR_WIDTH)
-    pixel_width_base_stripe = calculate_stripe_pixels(image[-1])
+        image[middle_stripe_idx], FOCAL_WIDTH, SENSOR_WIDTH)
+    pixel_width_base_stripe = calculate_stripe_pixels(image[middle_stripe_idx])
     
-    for stripe in image: 
+    SQUEEZE_FACTOR = 5
+    for idx, stripe in enumerate(image): 
         real_width_current_stripe = calculate_real_life_width(
             stripe, FOCAL_WIDTH, SENSOR_WIDTH)
-        real_ratio = real_width_current_stripe / real_width_base_stripe
+        real_ratio = real_width_current_stripe / (real_width_base_stripe * SQUEEZE_FACTOR)
         new_current_stripe_width = int(pixel_width_base_stripe * real_ratio)
-        new_stripe = enlarge_stripe(stripe, new_current_stripe_width)
-        image[0, :] = new_stripe
+        new_stripe = normalize_stripe(stripe, new_current_stripe_width)
+        image[idx, :] = new_stripe
         
     return image
 
-def enlarge_stripe(stripe: np.ndarray, new_width: int):
+
+def normalize_stripe(stripe: np.ndarray, new_width: int):
     stripe_middle = calculate_middle_point(stripe)
-    new_width = min(new_width, stripe.shape[0]) # Avoid Out of bound
-    
-    for i in range(stripe_middle + 1):
+    new_width = min(new_width, stripe.shape[0]) // 2 # Avoid Out of bound
+    LIGHT_VAL = 5
+    new_stripe = np.zeros(len(stripe))
+
+    for i in range(new_width):
+        if stripe_middle + i < len(new_stripe):
+            new_stripe[stripe_middle + i] = LIGHT_VAL
+
         if stripe_middle - i >= 0:
-            stripe[stripe_middle - i] = 5
-        if stripe_middle + i < len(stripe):
-            stripe[stripe_middle + i] = 5
-    return stripe
+            new_stripe[stripe_middle - i] = LIGHT_VAL
+    return new_stripe
 
 def calculate_middle_point(stripe: np.ndarray):
     start, end = get_stripe_range(stripe)

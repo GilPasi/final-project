@@ -133,15 +133,24 @@ def main():
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
     combined_prediction = seg_prediction * dep_prediction
     
-    INDEX = 1
-    cropped_array = crop_prediction(combined_prediction)
-    normal_array = normalize(cropped_array[0])
-    
-        
+    cropped_preds = crop_prediction(combined_prediction)
+    INDEX = 0
+    normal_array = normalize(cropped_preds[INDEX])
     _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
-                normal_array,f"backend/algorithm/input/dog_walk_{INDEX + 1}.png")
+                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
 
-    input("Press enter")
+    INDEX = 1
+    normal_array = normalize(cropped_preds[INDEX])
+    _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
+                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
+
+    INDEX = 2
+    normal_array = normalize(cropped_preds[INDEX])
+    _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
+                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
+
+
+    input("Press enter\n")
 
 
 if __name__ == "__main__":
