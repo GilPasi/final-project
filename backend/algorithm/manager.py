@@ -11,12 +11,12 @@ import logging
 
 from PIL import Image
 from damaged_snapshot_exception import DamagedSnapshotException
-from width_estimating import normalize
+from width_estimating import multiple_normalize_object_width
 from utils import get_algorithm_dir,ipc_file_path, SNAPSHOT_SIZE, slice_size,\
 MINIMUM_LIGHT_PIXELS_IN_LINE, list_directory_contents, get_default_input_path
 
 logging.basicConfig(filename='image_processing.log', 
-                    level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+                    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
@@ -32,7 +32,7 @@ def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
     
 
 
-def _present_image(depth_sample = None, segmentation_sample = None,
+def _present_results(depth_sample = None, segmentation_sample = None,
                     combined_sample = None, image_path = None):
     if image_path is not None: 
         img = Image.open(image_path)
@@ -61,6 +61,14 @@ def _present_image(depth_sample = None, segmentation_sample = None,
 
     plt.tight_layout()  
     plt.show()
+
+def _present_image(array_to_plot: np.ndarray, array_name:str = "Image"):
+    plt.imshow(array_to_plot)
+    plt.axis('off')  # Turn off the axis
+    plt.title(array_name)  # Add a title to the image
+    plt.show()
+
+
 
 
 def get_predictions():
@@ -124,56 +132,43 @@ def crop_prediction(prediction: np.ndarray):
             logging.error(f"Image {image_path} was damaged, not enough light pixels")
     
     return cropped_matrices
-        
 
-def main():
+
+def glue_map(matrices, orientations):
+    if len(matrices) != len(orientations):
+        raise ValueError("The number of matrices and orientations must be the same.")
+    
+    result = matrices[0]
+    for i in range(1, len(matrices)):
+        if orientations[i] == 'horizontal':
+            result = np.hstack((matrices[i], result))
+        elif orientations[i] == 'vertical':
+            result = np.vstack((matrices[i], result))
+        else:
+            raise ValueError("Invalid orientation. Use 'horizontal' or 'vertical'.")
+    
+    return result
+    
+def get_orientations():
+    # Mockaup
+    return ['vertical','vertical','vertical','vertical'] 
+
+def produce_map():
     seg_prediction, dep_prediction = get_predictions()
     assert type(seg_prediction) == type(dep_prediction)
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
     combined_prediction = seg_prediction  * dep_prediction
     
-    cropped_preds = crop_prediction(combined_prediction)
-    cropped_segmentations = crop_prediction(seg_prediction)
-    INDEX = 0
-    normal_array = normalize(cropped_preds[INDEX])
-    normal_segmentations = normalize(cropped_segmentations[INDEX])
-    _present_image(combined_prediction[INDEX],normal_segmentations,
-                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
-    
-    INDEX = 1
-    normal_array = normalize(cropped_preds[INDEX])
-    normal_segmentations = normalize(cropped_segmentations[INDEX])
-    _present_image(combined_prediction[INDEX],normal_segmentations,
-                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
-    
-    INDEX = 2
-    normal_array = normalize(cropped_preds[INDEX])
-    normal_segmentations = normalize(cropped_segmentations[INDEX])
-    _present_image(combined_prediction[INDEX],normal_segmentations,
-                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
-    INDEX = 3    
-    normal_array = normalize(cropped_preds[INDEX])
-    normal_segmentations = normalize(cropped_segmentations[INDEX])
-    _present_image(combined_prediction[INDEX],normal_segmentations,
-                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
+    cropped_preds = crop_prediction(combined_prediction)    
+    normal_results = multiple_normalize_object_width(cropped_preds)
+    map = glue_map(normal_results, get_orientations())
 
-    # INDEX = 1
-    # normal_array = normalize(cropped_preds[INDEX])
-    # _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
-    #             normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
-
-    # INDEX = 2
-    # normal_array = normalize(cropped_preds[INDEX])
-    # _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
-    #             normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
-
-
+    _present_image(map)
     input("Press enter\n")
+    return map
+produce_map()
 
-
-if __name__ == "__main__":
-    main()
 
     
 

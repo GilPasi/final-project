@@ -39,8 +39,11 @@ def calculate_real_life_width(pixels, focal_length, sensor_width):
         
     return real_life_width
 
+def multiple_normalize_object_width(images: list):
+    return [normalize_object_width(img) for img in images]
 
-def normalize(image):
+
+def normalize_object_width(image: np.ndarray):
     # TODO: Get FOCAL_WIDTH from react native and SENSOR_WIDTH from database ( and react tn).
     SENSOR_WIDTH = 11.95
     FOCAL_WIDTH = 26
