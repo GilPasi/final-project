@@ -94,22 +94,30 @@ def _get_orientations():
     # Mockaup
     return ['vertical','vertical','vertical','vertical'] 
 
-def produce_map():
-    seg_prediction, dep_prediction = get_predictions()
-    assert type(seg_prediction) == type(dep_prediction)
-    assert np.shape(seg_prediction) == np.shape(dep_prediction),\
-        f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
-    combined_prediction = seg_prediction  * dep_prediction
-    
+def combine_analysis(dep_prediction, seg_prediction):
+    return dep_prediction * seg_prediction
+
+def process_predictions(seg_prediction, dep_prediction):
+    combined_prediction = combine_analysis(seg_prediction, dep_prediction)
     cropped_preds = crop_prediction(combined_prediction)    
     normal_results = multiple_normalize_object_width(cropped_preds)
-    map = glue_map(normal_results, _get_orientations())
+    return normal_results
 
-    _present_image(map)
-    input("Press enter\n")
+def produce_map(debug = False):
+    seg_prediction, dep_prediction = get_predictions()
+    assert np.shape(seg_prediction) == np.shape(dep_prediction),\
+        f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
+    
+    processed_output = process_predictions(seg_prediction, dep_prediction)
+    map = glue_map(processed_output, _get_orientations())
+
+    if debug:
+        _present_image(map)
+        input("Press enter\n")
+
     return map
-
-produce_map()
+if __name__ == "__main__":
+    produce_map(True)
 
 
     
