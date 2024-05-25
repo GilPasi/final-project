@@ -47,6 +47,12 @@ def list_directory_contents(directory_path, allowed_extentsions=[]):
             all_contents.append(full_path)
     return all_contents
 
+def prefix_from_absolute_path (absolute_path: str, prefix: str):
+    directory, file_name = os.path.split(absolute_path)
+    new_file_name = prefix + file_name
+    return os.path.join(directory, new_file_name)
+
+
 def slice_size():
     # This is a method since calculating the slice size
     # might change dramtiacally and even dinamically
