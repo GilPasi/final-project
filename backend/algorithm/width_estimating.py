@@ -23,18 +23,17 @@ def get_average_depth(stripe: np.ndarray):
 
 
 def calculate_real_life_width(pixels, focal_length, sensor_width):
-    # Find the indices of the non-zero pixels
     non_zero_indices = np.where(pixels > 0)[0]
 
-    # If there are no non-zero pixels, return 0
     if non_zero_indices.size == 0:
         return 0, 0
 
     depths = pixels[non_zero_indices]
-    avg_depth = np.mean(depths)
+    MEAN_POWER = 1.75
+    avg_powered_depth = (np.mean(depths))**MEAN_POWER
     fov = 2 * np.arctan(sensor_width / (2 * focal_length))
     pixel_width = non_zero_indices[-1] - non_zero_indices[0] + 1
-    width_at_avg_depth = 2 * avg_depth * np.tan(fov / 2)
+    width_at_avg_depth = 2 * avg_powered_depth * np.tan(fov / 2)
     
     real_life_width = width_at_avg_depth * (pixel_width / len(pixels))
         
@@ -42,8 +41,10 @@ def calculate_real_life_width(pixels, focal_length, sensor_width):
 
 
 def normalize(image):
-    FOCAL_WIDTH = 26
+    # TODO: Get FOCAL_WIDTH from react native and SENSOR_WIDTH from database ( and react tn).
     SENSOR_WIDTH = 11.95
+    FOCAL_WIDTH = 26
+
 
     middle_stripe_idx = len(image) // 2
 
@@ -51,11 +52,12 @@ def normalize(image):
         image[middle_stripe_idx], FOCAL_WIDTH, SENSOR_WIDTH)
     pixel_width_base_stripe = calculate_stripe_pixels(image[middle_stripe_idx])
     
-    SQUEEZE_FACTOR = 5
+    SQUEEZE_FACTOR = 2.5
     for idx, stripe in enumerate(image): 
         real_width_current_stripe = calculate_real_life_width(
             stripe, FOCAL_WIDTH, SENSOR_WIDTH)
         real_ratio = real_width_current_stripe / (real_width_base_stripe * SQUEEZE_FACTOR)
+        real_ratio **= 2
         new_current_stripe_width = int(pixel_width_base_stripe * real_ratio)
         new_stripe = normalize_stripe(stripe, new_current_stripe_width)
         image[idx, :] = new_stripe

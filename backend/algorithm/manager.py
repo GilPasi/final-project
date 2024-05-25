@@ -118,7 +118,7 @@ def crop_prediction(prediction: np.ndarray):
       f"images {len(all_images_paths)} as crude ones {len(prediction)}"
     for image_path, prediction in zip(all_images_paths, prediction):
         try:     
-            cropped_matrix = smart_crop(prediction)
+            cropped_matrix = np.copy(smart_crop(prediction))
             cropped_matrices.append(cropped_matrix)
         except DamagedSnapshotException:
             logging.error(f"Image {image_path} was damaged, not enough light pixels")
@@ -131,23 +131,42 @@ def main():
     assert type(seg_prediction) == type(dep_prediction)
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
-    combined_prediction = seg_prediction * dep_prediction
+    combined_prediction = seg_prediction  * dep_prediction
     
     cropped_preds = crop_prediction(combined_prediction)
+    cropped_segmentations = crop_prediction(seg_prediction)
     INDEX = 0
     normal_array = normalize(cropped_preds[INDEX])
-    _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
+    normal_segmentations = normalize(cropped_segmentations[INDEX])
+    _present_image(combined_prediction[INDEX],normal_segmentations,
                 normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
-
+    
     INDEX = 1
     normal_array = normalize(cropped_preds[INDEX])
-    _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
+    normal_segmentations = normalize(cropped_segmentations[INDEX])
+    _present_image(combined_prediction[INDEX],normal_segmentations,
                 normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
-
+    
     INDEX = 2
     normal_array = normalize(cropped_preds[INDEX])
-    _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
+    normal_segmentations = normalize(cropped_segmentations[INDEX])
+    _present_image(combined_prediction[INDEX],normal_segmentations,
                 normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
+    INDEX = 3    
+    normal_array = normalize(cropped_preds[INDEX])
+    normal_segmentations = normalize(cropped_segmentations[INDEX])
+    _present_image(combined_prediction[INDEX],normal_segmentations,
+                normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
+
+    # INDEX = 1
+    # normal_array = normalize(cropped_preds[INDEX])
+    # _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
+    #             normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
+
+    # INDEX = 2
+    # normal_array = normalize(cropped_preds[INDEX])
+    # _present_image(dep_prediction[INDEX],seg_prediction[INDEX],
+    #             normal_array,f"backend/algorithm/input/sqr_frame_000{INDEX}.jpg")
 
 
     input("Press enter\n")
