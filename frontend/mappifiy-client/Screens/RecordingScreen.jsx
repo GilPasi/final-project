@@ -1,33 +1,41 @@
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Video } from 'expo-av';
+import ThemedButton  from '../Components/ThemedButton';
+import theme from "../Components/StaticStyle";
 
-function printObjectMethods(obj) {
-  let methods = [];
-  let currentObj = obj;
+const sendVideoToServer = async (videoUri) => {
+  try {
+    const videoFile = {
+      uri: videoUri,
+      name: 'video.mp4',
+      type: 'video/mp4',
+    };
 
-  // Traverse the prototype chain to get all methods, including inherited ones
-  while (currentObj) {
-    const properties = Object.getOwnPropertyNames(currentObj);
+    const formData = new FormData();
+    formData.append('video', videoFile);
 
-    properties.forEach(property => {
-      if (typeof obj[property] === 'function' && !methods.includes(property)) {
-        methods.push(property);
-      }
+    const response = await axios.post( /*TODO: replace with actuall url*/'https://your-server-endpoint.com/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
 
-    currentObj = Object.getPrototypeOf(currentObj);
+    console.log('Server response:', response.data);
+  } catch (error) {
+    console.error('Error uploading video:', error);
   }
+};
 
-  // Print all the methods
-  methods.forEach(method => console.log(method));
-}
 
 
 export default function App() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const [isRecording, setIsRecording] = useState(false)
+  const [videoUri, setVideoUri] = useState(null);
+
   let cameraRef = useRef()
   let videoRef = useRef()
 
@@ -52,7 +60,10 @@ export default function App() {
       try {
         setIsRecording(true);
         await cameraRef.current.recordAsync()
-          .then(vidUri => console.log("Video got ", vidUri))
+          .then(vidUri => {
+            console.log("Video got ", vidUri)
+            setVideoUri(vidUri)
+          })
           .catch(err => console.log("something went wrong", err))
         setIsRecording(false);
 
@@ -86,20 +97,27 @@ export default function App() {
     return (
       <View style={styles.container}>
         <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermissions} title="Grant Permission" />
+        <ThemedButton onPress={requestPermissions} title="Grant Permission" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <CameraView mode="video" style={styles.camera} ref={cameraRef}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleRecord}>
-            <Text style={{fontSize:100, color:"red"}}>{isRecording? "■" : "⬤" }</Text>
-          </TouchableOpacity>
-        </View>
-      </CameraView>
+    <View style={{...styles.container, alignItems: videoUri ? 'center': 'left'}}>
+      {videoUri ? (
+        <ThemedButton
+            title="Send Video"
+            onPress={() => sendVideoToServer(videoUri)}
+          />
+        ):(
+          <CameraView mode="video" style={styles.camera} ref={cameraRef}>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={toggleRecord}>
+                <Text style={{fontSize:100, color:"#C41E3A"}}>{isRecording? "■" : "⬤" }</Text>
+              </TouchableOpacity>
+            </View>
+          </CameraView>
+    )}
     </View>
   );
 }
@@ -116,7 +134,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     backgroundColor: 'transparent',
-    margin: 64,
+    margin: 5,
   },
   button: {
     flex: 1,
@@ -129,3 +147,4 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
+

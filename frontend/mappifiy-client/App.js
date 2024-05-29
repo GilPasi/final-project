@@ -11,7 +11,7 @@ function App() {
     <NavigationContainer>
       <Stack.Navigator>  
         <Stack.Screen name="Index" component={IndexScreen} />
-        <Stack.Screen name="Accelerometer" component={RecordingScreen} />
+        <Stack.Screen name="Record Video" component={RecordingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
