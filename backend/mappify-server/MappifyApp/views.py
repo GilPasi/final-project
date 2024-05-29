@@ -52,6 +52,7 @@ def delete_video(request, pk):
     print("Rendering delete_video template")
     return render(request, 'MappifyApp/delete_video.html', {'video': video})
 
+
 # def process_video(video_path):
 #     cap = cv2.VideoCapture(video_path)
 #     while cap.isOpened():

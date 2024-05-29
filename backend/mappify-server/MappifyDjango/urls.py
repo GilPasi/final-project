@@ -21,15 +21,13 @@ Including another URLconf
 # video deletion views.
 
 from django.contrib import admin
-from django.urls import path
-from MappifyApp import views
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('upload/', views.upload_video, name='upload_video'),
-    path('videos/', views.video_list, name='video_list'),
-    path('videos/<int:pk>/', views.video_detail, name='video_detail'),
-    path('videos/<int:pk>/delete/', views.delete_video, name='delete_video'),
+    path('api/', include('MappifyApp.api_urls')),  # Ensure this is pointing to the correct api_urls module
+    path('', include('MappifyApp.urls')),  # Include the app-level urls if they exist
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
