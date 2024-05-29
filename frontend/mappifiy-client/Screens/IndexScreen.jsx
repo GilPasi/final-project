@@ -21,11 +21,19 @@ export function Page() {
     <View style={styles.container}>
       <Text style={styles.title}>Welcome To Mappify!</Text>
       <Button
+        title="To Scan"
+        buttonStyle={styles.button}
+        titleStyle={styles.buttonText}
+        onPress={() => {
+          navigation.navigate('Accelerometer');
+        }}
+      />
+      <Button
         title="Start Scan"
         buttonStyle={styles.button}
         titleStyle={styles.buttonText}
         onPress={() => {
-          fetchData(); // Call the fetchData function here
+          fetchData(); 
           console.log("Start Scan button pressed");
           navigation.navigate('Accelerometer');
         }}
