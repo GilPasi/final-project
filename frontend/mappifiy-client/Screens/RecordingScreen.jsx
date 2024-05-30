@@ -53,9 +53,10 @@ export default function App() {
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const [isRecording, setIsRecording] = useState(false)
   const [videoUri, setVideoUri] = useState(null);
-  const [csrfToken, setCsrfToken] = useState(null)
+  // const [csrfToken, setCsrfToken] = useState(null)
 
   let cameraRef = useRef()
+  let csrfRef = useRef(null)
 
   async function requestPermissions() {
     const cameraStatus = await requestCameraPermission();
@@ -67,7 +68,6 @@ export default function App() {
       console.log("Permissions not granted");
     }
   }
-
 
   const sendVideoToServer = async (uriObj) => {
     uri = uriObj.uri
@@ -85,8 +85,7 @@ export default function App() {
       method: 'POST',
       body: formData,
       headers: {
-        'Content-Type': 'multipart/form-data',
-        'X-CSRFToken': csrfToken
+        'X-CSRFToken': csrfRef.current
       },
     });
 
@@ -101,7 +100,7 @@ export default function App() {
     try {
       const response = await fetch('http://10.0.2.2:8000/get-csrf-token/');
       const token = extractCsrfToken(response);
-      setCsrfToken(token);
+      csrfRef.current = token
       console.log("CSRF Token:", token);
     } catch (err) {
       console.error("Something went wrong while querying CSRF token:", err);
