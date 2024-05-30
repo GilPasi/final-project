@@ -1,9 +1,7 @@
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Video } from 'expo-av';
 import ThemedButton  from '../Components/ThemedButton';
-import theme from "../Components/StaticStyle";
 
 const sendVideoToServer = async (videoUri) => {
   try {
@@ -29,7 +27,6 @@ const sendVideoToServer = async (videoUri) => {
 };
 
 
-
 export default function App() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
@@ -37,8 +34,6 @@ export default function App() {
   const [videoUri, setVideoUri] = useState(null);
 
   let cameraRef = useRef()
-  let videoRef = useRef()
-
 
   async function requestPermissions() {
     const cameraStatus = await requestCameraPermission();
@@ -148,3 +143,86 @@ const styles = StyleSheet.create({
   },
 });
 
+
+
+
+// import { useState, useEffect } from 'react';
+// import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// import { Gyroscope } from 'expo-sensors';
+// import {get_smartphone_fps} from '../utilities/utils'
+
+// export default function App() {
+//   const [{ x, y, z }, setData] = useState({
+//     x: 0,
+//     y: 0,
+//     z: 0,
+//   });
+//   const [subscription, setSubscription] = useState(null);
+//   const [recording, setRecording] = useState([])
+
+
+//   const _subscribe = () => {
+//     setSubscription(
+//       Gyroscope.addListener(gyroscopeData => {
+//         setData(gyroscopeData);
+//         setRecording([...recording,gyroscopeData])
+//       })
+//     );
+//   };
+
+//   const _unsubscribe = () => {
+//     subscription && subscription.remove();
+//     setSubscription(null);
+//   };
+
+//   useEffect(() => {
+//     _subscribe();
+//     Gyroscope.setUpdateInterval(get_smartphone_fps())
+//     return () => _unsubscribe();
+//   }, []);
+
+//   return (
+//     <View style={styles.container}>
+//       <Text style={styles.text}>Gyroscope:</Text>
+//        <Text style={styles.text}>x: {x}</Text>
+//       <Text style={styles.text}>y: {y}</Text>
+//       <Text style={styles.text}>z: {z}</Text>
+//      <View style={styles.buttonContainer}>
+//         <TouchableOpacity 
+//           onPress={subscription ? _unsubscribe : _subscribe}
+//           style={styles.button}
+//         >
+//           <Text>{subscription ? 'On' : 'Off'}</Text>
+//         </TouchableOpacity>
+//       </View>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     paddingHorizontal: 10,
+//   },
+//   text: {
+//     textAlign: 'center',
+//   },
+//   buttonContainer: {
+//     flexDirection: 'row',
+//     alignItems: 'stretch',
+//     marginTop: 15,
+//   },
+//   button: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     backgroundColor: '#eee',
+//     padding: 10,
+//   },
+//   middleButton: {
+//     borderLeftWidth: 1,
+//     borderRightWidth: 1,
+//     borderColor: '#ccc',
+//   },
+// });

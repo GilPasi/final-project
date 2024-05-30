@@ -11,7 +11,6 @@ export function Page() {
   async function fetchData() {
     try {
       const response = await axios.get('http://localhost:8000/'); // Replace with your actual API endpoint
-      console.log(response.data); // Handle the response data here
     } catch (error) {
       console.error(error); // Handle errors here
     }
