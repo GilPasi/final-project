@@ -1,7 +1,7 @@
 import axios from 'axios';
-import {get_server_host_name} from '../utilities/utils'
+import {getBaseUrl} from '../utilities/utils'
 
-export const API_BASE_URL = `${get_server_host_name()}/api`
+export const API_BASE_URL = `${getBaseUrl()}/api`
 
 
 export const api = axios.create({

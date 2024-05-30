@@ -4,18 +4,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import {api, videoApi, API_BASE_URL} from '../services/api';
 import axios from 'axios'
 import ThemedButton  from '../Components/ThemedButton';
+import {getBaseUrl} from '../utilities/utils'
 
-const extract_csrf_token = (response) => {
-      const cookies = response.headers.get('set-cookie');
-      return  cookies.split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
-    // const cookies = response.headers.get('set-cookie');
-    // if (cookies) {
-    //   const csrfToken = cookies.split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
-    //   return csrfToken;
-    // } else {
-    //   console.error("No CSRF token found in set-cookie header");
-    // }
-};
 
 // const sendVideoToServer1 = async (videoUri) => {
 //     const videoFile = {
@@ -80,8 +70,8 @@ export default function App() {
       type: `video/${fileType}`
     });
 
-
-    const response = await fetch('http://10.0.2.2:8000/upload/', {
+     `${get_base_url()}/upload/`
+    const response = await fetch('http://10.0.0.2:8000/upload/', {
       method: 'POST',
       body: formData,
       headers: {
@@ -98,7 +88,8 @@ export default function App() {
 
   const fetchCsrfToken = async () => {
     try {
-      const response = await fetch('http://10.0.2.2:8000/get-csrf-token/');
+      url = 'http://10.0.0.2:8000/get-csrf-token/'
+      const response = await fetch(url);
       const token = extractCsrfToken(response);
       csrfRef.current = token
       console.log("CSRF Token:", token);
@@ -226,7 +217,7 @@ const styles = StyleSheet.create({
 // import { useState, useEffect } from 'react';
 // import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // import { Gyroscope } from 'expo-sensors';
-// import {get_smartphone_fps} from '../utilities/utils'
+// import {getSmartPhoneFps} from '../utilities/utils'
 
 // export default function App() {
 //   const [{ x, y, z }, setData] = useState({
@@ -254,7 +245,7 @@ const styles = StyleSheet.create({
 
 //   useEffect(() => {
 //     _subscribe();
-//     Gyroscope.setUpdateInterval(get_smartphone_fps())
+//     Gyroscope.setUpdateInterval(getSmartPhoneFps())
 //     return () => _unsubscribe();
 //   }, []);
 
