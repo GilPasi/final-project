@@ -1,23 +1,25 @@
-# 1. Define environment variable "MAPPIFY" which is the base dir of this project
+ https://reactnative.dev/docs/environment-setup?guide=quickstart
+ Make sure you have:
+ 1. Python
+ 2. Node.js + npx + npm
+ 3. expo (For react native )
+ 4. [Optional] Android command line SDK for emulating in phone (https://developer.android.com/studio#downloads)
+ 5. [Optional] Download the expo app from google play to your phone.
+
+#  Environment Setup:
+Define environment variable "MAPPIFY" which is the base dir of this project
 git clone git@github.com:isl-org/ZoeDepth.git lib
 conda create -f setup/seg_env.yml
 conda create -f setup/zoe_env.yml
+conda create -f setup/dj_env.yml 
 
-# https://reactnative.dev/docs/environment-setup?guide=quickstart
-# Make sure you have:
-# 1. Python
-# 2. Node.js + npx + npm
-# 3. expo (For react native )
-# 4. Android command line SDK for emulating in phone (https://developer.android.com/studio#downloads)
+To run client daemon, run:
+cd frontend/mappifiy-client
+npm install
+npx expo start
 
-# Downloaded node modules:
-# 1. expo 
-# 2. react-native-asset
-# 3. expo-permissions
-# 4. @react-navigation/native-stack
-
-
-# Then, run:
-# npm install
-# npx expo start
+To run server daemon, run: 
+conda activate dj 
+cd 
+python manage.py
 
