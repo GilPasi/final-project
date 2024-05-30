@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-
+import os 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-rrig$l2he@z2e%*tkpuq_o(oopf*p9*4-g8l^%i=w@e4$im)7a
 DEBUG = True
 
 ALLOWED_HOSTS = ['10.0.2.2',
-                 '127.0.0.1',]
+                 '127.0.0.1','localhost']
 
 
 # Application definition
@@ -65,7 +65,8 @@ REST_FRAMEWORK = {
     ],
 }
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+os.makedirs(os.path.join(MEDIA_ROOT, 'input'), exist_ok=True)
 
 TEMPLATES = [
     {

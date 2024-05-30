@@ -9,10 +9,13 @@ from .models import Video
 # import cv2
 
 # Create your views here.
-
 def upload_video(request):
     print("Entering upload_video view")
     if request.method == 'POST':
+        print('request is: ', request)
+        print('POST is: ', request.POST)
+        print('FILES is: ', request.FILES)
+
         print("Processing POST request in upload_video view")
         form = VideoForm(request.POST, request.FILES)
         if form.is_valid():

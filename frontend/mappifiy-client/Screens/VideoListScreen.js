@@ -10,7 +10,7 @@ const VideoListScreen = () => {
   const fetchVideos = async () => {
     try {
       console.log('Fetching videos...');
-      const response = await api.get('/videos/10');
+      const response = await api.get('/videos/1');
       console.log('Response:', response.data);
       setmessage('' + response)
       setVideos(response.data);

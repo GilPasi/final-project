@@ -40,10 +40,8 @@ export function Page() {
         title="Search"
         onPress={() => console.log("search was pressed")}
       />
-      <Button
+      <ThemedButton
         title="Go to Video List"
-        buttonStyle={styles.button}
-        titleStyle={styles.buttonText}
         onPress={() => {
           console.log('Go to Video List button pressed');
           navigation.navigate('Videos');

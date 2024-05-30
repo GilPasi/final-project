@@ -1,7 +1,17 @@
 import axios from 'axios';
+import {get_server_host_name} from '../utilities/utils'
 
-const api = axios.create({
-  baseURL: 'http://10.0.2.2:8000/api', // Change this to your backend URL
+export const API_BASE_URL = `${get_server_host_name()}/api`
+
+
+export const api = axios.create({
+  baseURL: API_BASE_URL, 
 });
 
-export default api;
+export const videoApi = axios.create({
+  baseURL: API_BASE_URL, 
+  headers: {'Content-Type': 'multipart/form-data'},
+});
+
+
+

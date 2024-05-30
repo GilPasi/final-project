@@ -1,10 +1,43 @@
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {api, videoApi, API_BASE_URL} from '../services/api';
+import axios from 'axios'
 import ThemedButton  from '../Components/ThemedButton';
 
-const sendVideoToServer = async (videoUri) => {
-  try {
+
+
+
+const sendVideoToServer = async (uriObj) => {
+  uri = uriObj.uri
+  let fileType = uri.split('.').pop();
+
+  let formData = new FormData();
+  formData.append('video', {
+    uri,
+    name: `video.${fileType}`,
+    type: `video/${fileType}`
+  });
+
+
+  const response = await fetch('http://10.0.2.2:8000/upload/', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  console.log("4")
+
+
+  if (response.ok) {
+    console.log('Video uploaded successfully!');
+  } else {
+    console.log('Video upload failed.');
+  }
+};
+
+const sendVideoToServer1 = async (videoUri) => {
     const videoFile = {
       uri: videoUri,
       name: 'video.mp4',
@@ -13,18 +46,33 @@ const sendVideoToServer = async (videoUri) => {
 
     const formData = new FormData();
     formData.append('video', videoFile);
+    formData.append('title', 'Sample Video');
 
-    const response = await axios.post( /*TODO: replace with actuall url*/'https://your-server-endpoint.com/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    console.log("vidfile ,",typeof(videoFile))
 
-    console.log('Server response:', response.data);
-  } catch (error) {
-    console.error('Error uploading video:', error);
-  }
-};
+
+    const getFormData = object => Object.keys(object).reduce((formData, key) => {
+      formData.append(key, object[key]);
+      return formData;
+  }, new FormData());
+
+    const response = await videoApi.post('/upload/', getFormData(formData));
+
+    const videoData = {
+      title: 'Sample Video',
+      description: 'This is a sample video description',
+    };
+
+    objectToSend = videoData
+
+    // const response = await api.get('/upload/');
+    // console.log(response)
+
+    // const response2 = await api.post('/upload/', videoData);
+
+    // console.log('Server response:', response.data);
+
+}
 
 
 export default function App() {
