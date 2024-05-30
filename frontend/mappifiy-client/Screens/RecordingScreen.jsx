@@ -5,74 +5,47 @@ import {api, videoApi, API_BASE_URL} from '../services/api';
 import axios from 'axios'
 import ThemedButton  from '../Components/ThemedButton';
 
-
-
-
-const sendVideoToServer = async (uriObj) => {
-  uri = uriObj.uri
-  let fileType = uri.split('.').pop();
-
-  let formData = new FormData();
-  formData.append('video', {
-    uri,
-    name: `video.${fileType}`,
-    type: `video/${fileType}`
-  });
-
-
-  const response = await fetch('http://10.0.2.2:8000/upload/', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  console.log("4")
-
-
-  if (response.ok) {
-    console.log('Video uploaded successfully!');
-  } else {
-    console.log('Video upload failed.');
-  }
+const extract_csrf_token = (response) => {
+      const cookies = response.headers.get('set-cookie');
+      return  cookies.split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
+    // const cookies = response.headers.get('set-cookie');
+    // if (cookies) {
+    //   const csrfToken = cookies.split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
+    //   return csrfToken;
+    // } else {
+    //   console.error("No CSRF token found in set-cookie header");
+    // }
 };
 
-const sendVideoToServer1 = async (videoUri) => {
-    const videoFile = {
-      uri: videoUri,
-      name: 'video.mp4',
-      type: 'video/mp4',
-    };
+// const sendVideoToServer1 = async (videoUri) => {
+//     const videoFile = {
+//       uri: videoUri,
+//       name: 'video.mp4',
+//       type: 'video/mp4',
+//     };
 
-    const formData = new FormData();
-    formData.append('video', videoFile);
-    formData.append('title', 'Sample Video');
+//     const formData = new FormData();
+//     formData.append('video', videoFile);
+//     formData.append('title', 'Sample Video');
 
-    console.log("vidfile ,",typeof(videoFile))
+//     console.log("vidfile ,",typeof(videoFile))
 
 
-    const getFormData = object => Object.keys(object).reduce((formData, key) => {
-      formData.append(key, object[key]);
-      return formData;
-  }, new FormData());
+//     const getFormData = object => Object.keys(object).reduce((formData, key) => {
+//       formData.append(key, object[key]);
+//       return formData;
+//   }, new FormData());
 
-    const response = await videoApi.post('/upload/', getFormData(formData));
+//     const response = await videoApi.post('/upload/', getFormData(formData));
 
-    const videoData = {
-      title: 'Sample Video',
-      description: 'This is a sample video description',
-    };
+//     const videoData = {
+//       title: 'Sample Video',
+//       description: 'This is a sample video description',
+//     };
 
-    objectToSend = videoData
+//     objectToSend = videoData
 
-    // const response = await api.get('/upload/');
-    // console.log(response)
-
-    // const response2 = await api.post('/upload/', videoData);
-
-    // console.log('Server response:', response.data);
-
-}
+// }
 
 
 export default function App() {
@@ -80,6 +53,7 @@ export default function App() {
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const [isRecording, setIsRecording] = useState(false)
   const [videoUri, setVideoUri] = useState(null);
+  const [csrfToken, setCsrfToken] = useState(null)
 
   let cameraRef = useRef()
 
@@ -94,9 +68,63 @@ export default function App() {
     }
   }
 
+
+  const sendVideoToServer = async (uriObj) => {
+    uri = uriObj.uri
+    let fileType = uri.split('.').pop();
+  
+    let formData = new FormData();
+    formData.append('video', {
+      uri,
+      name: `video.${fileType}`,
+      type: `video/${fileType}`
+    });
+  
+    const response = await fetch('http://10.0.2.2:8000/upload/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (response.ok) {
+      console.log('Video uploaded successfully!');
+    } else {
+      console.log('Video upload failed.');
+    }
+  };
+
+  const fetchCsrfToken = async () => {
+    try {
+      const response = await fetch('http://10.0.2.2:8000/get-csrf-token/');
+      const token = extractCsrfToken(response);
+      setCsrfToken(token);
+      console.log("CSRF Token:", token);
+    } catch (err) {
+      console.error("Something went wrong while querying CSRF token:", err);
+    }
+  };
+
+  const extractCsrfToken = (response) => {
+    const cookies = response.headers.get('set-cookie');
+    if (cookies) {
+      const token = cookies.split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
+      return token;
+    } else {
+      console.error("No CSRF token found in set-cookie header");
+      return null;
+    }
+  };
+
+
   useEffect(() => {
     requestPermissions();
+    fetchCsrfToken()
   }, []);
+
+  
+
 
   const startRecording = async () => {
     if (cameraRef.current) {

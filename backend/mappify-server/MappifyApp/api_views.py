@@ -26,7 +26,7 @@ class UploadVideo(generics.CreateAPIView):
             print('request is: ', request)
             print('POST is: ', request.POST)
             print('FILES is: ', request.FILES)
-            
+
             serializer = self.get_serializer(data=request.data)
             print("2")
             if serializer.is_valid():
@@ -57,6 +57,5 @@ class UploadVideo(generics.CreateAPIView):
     #     return Response({"message": "Video uploaded successfully"}),
 
     def get(self, request, *args, **kwargs):
-        print("AAAA")
         data = {"message": "This is a GET request response"}
         return Response(data, status=status.HTTP_200_OK)
