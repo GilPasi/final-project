@@ -9,8 +9,8 @@ from .models import Video
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 # import cv2
-
 # Create your views here.
+
 def upload_video(request):
     print("Entering upload_video view")
     if request.method == 'POST':
