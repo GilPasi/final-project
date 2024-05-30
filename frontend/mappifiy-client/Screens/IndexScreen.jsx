@@ -10,7 +10,9 @@ export function Page() {
 
   async function fetchData() {
     try {
-      const response = await axios.get('http://localhost:8000/'); // Replace with your actual API endpoint
+
+      const response = await axios.get('http://localhost:8000/api/videos/'); // Replace with your actual API endpoint
+      console.log(response.data); // Handle the response data here
     } catch (error) {
       console.error(error); // Handle errors here
     }
@@ -31,11 +33,21 @@ export function Page() {
           fetchData(); 
           console.log("Start Scan button pressed");
           navigation.navigate('Record Video');
+
         }}
       />
       <ThemedButton
         title="Search"
         onPress={() => console.log("search was pressed")}
+      />
+      <Button
+        title="Go to Video List"
+        buttonStyle={styles.button}
+        titleStyle={styles.buttonText}
+        onPress={() => {
+          console.log('Go to Video List button pressed');
+          navigation.navigate('Videos');
+        }}
       />
     </View>
   );
@@ -58,5 +70,4 @@ export function Page() {
         marginBottom: 50
       },
   });
-
 export default Page;
