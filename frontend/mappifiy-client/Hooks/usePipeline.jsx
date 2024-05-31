@@ -58,10 +58,10 @@ const usePipeline = () => {
           'Content-Type': 'multipart/form-data',
           'X-CSRF-TOKEN': csrfToken,
         },
-        // onUploadProgress: (progressEvent) => {
-        //   const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        //   setUploadProgress(progress);
-        // },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(progress);
+        },
       });
 
 
@@ -79,7 +79,7 @@ const usePipeline = () => {
     }
   };
 
-  return { csrfToken, uploadProgress, uploadStatus, uploadVideo, getCsrfToken  };
+  return {uploadProgress, uploadStatus, uploadVideo, getCsrfToken };
 };
 
 export default usePipeline;

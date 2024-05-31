@@ -12,7 +12,7 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false)
   const [videoUri, setVideoUri] = useState(null);
 
-  const {getCsrfToken} = usePipeline()
+  const {uploadProgress, uploadStatus, uploadVideo, getCsrfToken } = usePipeline()
 
   let cameraRef = useRef()
   
@@ -26,38 +26,6 @@ export default function App() {
       console.log("Permissions not granted");
     }
   }
-
-
-  const sendVideoToServer = async (uriObj) => {
-    const uri = uriObj.uri;
-    const fileType = uri.split('.').pop();
-    const time = new Date().getSeconds()
-    let formData = new FormData();
-    formData.append('video', {
-      uri,
-      name: `video${time}.${fileType}`,
-      type: `video/${fileType}`
-    });
-  
-    const url = '/upload/'; 
-    const token = getCsrfToken()
-  
-    try {
-      const response = await api.post(url, formData, {
-        headers: {
-          'X-CSRFToken': token
-        }
-      });
-  
-      if (response.status === 201) {
-        console.log('Video uploaded successfully!');
-      } else {
-        console.log('Video upload failed.');
-      }
-    } catch (error) {
-      console.log('Error while trying to upload to server:', error);
-    }
-  };
 
   useEffect(() => {
     requestPermissions();
@@ -114,10 +82,15 @@ export default function App() {
   return (
     <View style={{...styles.container, alignItems: videoUri ? 'center': 'left'}}>
       {videoUri ? (
-        <ThemedButton
+        <View>
+          <ThemedButton
             title="Send Video"
-            onPress={() => sendVideoToServer(videoUri)}
+            onPress={() => uploadVideo(videoUri)}
           />
+          <Text>{uploadProgress}</Text>
+          <Text>{uploadStatus}</Text>
+        </View>
+
         ):(
           <CameraView mode="video" style={styles.camera} ref={cameraRef}>
             <View style={styles.buttonContainer}>
