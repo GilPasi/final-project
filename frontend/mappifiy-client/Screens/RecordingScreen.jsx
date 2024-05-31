@@ -8,13 +8,14 @@ import usePipeline from '../Hooks/usePipeline';
 
 
 
-export default function App() {
+export default function RecordingScreen() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const [isRecording, setIsRecording] = useState(false)
   const [videoUri, setVideoUri] = useState(null);
 
-  const {uploadProgress, uploadStatus, uploadVideo, getCsrfToken } = usePipeline()
+  const {uploadProgress, uploadStatus, uploadVideo } = usePipeline()
+  const gyro = useGyro()
 
   let cameraRef = useRef()
   
@@ -38,6 +39,7 @@ export default function App() {
     if (cameraRef.current) {
       try {
         setIsRecording(true);
+        gyro.startRecord()
         await cameraRef.current.recordAsync()
           .then(vidUri => {
             console.log("Video got ", vidUri)
@@ -55,6 +57,7 @@ export default function App() {
     if (cameraRef.current && isRecording) {
       cameraRef.current.stopRecording();
     }
+    gyro.stopRecord()
   };
 
   function toggleRecord(){
@@ -94,13 +97,20 @@ export default function App() {
         </View>
 
         ):(
-          <CameraView mode="video" style={styles.camera} ref={cameraRef}>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={toggleRecord}>
-                <Text style={{fontSize:100, color:"#C41E3A"}}>{isRecording? "■" : "⬤" }</Text>
-              </TouchableOpacity>
-            </View>
-          </CameraView>
+          <View style={styles.camera}>
+            <CameraView mode="video" style={styles.camera} ref={cameraRef}>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity style={styles.button} onPress={toggleRecord}>
+                  <Text style={{fontSize:100, color:"#C41E3A"}}>{isRecording? "■" : "⬤" }</Text>
+                </TouchableOpacity>
+              </View>
+            </CameraView>
+            <Text>{gyro.data.x}</Text>
+            <Text>{gyro.data.y}</Text>
+            <Text>{gyro.data.z}</Text>
+
+
+          </View>
     )}
     </View>
   );
@@ -131,3 +141,49 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
+
+
+
+import { Gyroscope } from 'expo-sensors';
+
+export function useGyro() {
+  const [data, setData] = useState([{
+    x: 0,
+    y: 0,
+    z: 0,
+  }]);
+  const [subscription, setSubscription] = useState(null);
+
+  const _subscribe = () => {
+    setSubscription(
+      Gyroscope.addListener(gyroscopeData => {
+        setData(prevData=> [...prevData, gyroscopeData]);
+        // console.log(data)
+      })
+    );
+  };
+
+  const _unsubscribe = () => {
+    subscription && subscription.remove();
+    setSubscription(null);
+  };
+
+  useEffect(() => {
+    _subscribe();
+    Gyroscope.setUpdateInterval(10)
+    return () => _unsubscribe();
+  }, []);
+
+  const startRecord = () => {
+    setData([])
+    _subscribe()
+  }
+
+  const stopRecord = () =>{
+    _subscribe
+    console.log(data)
+  }
+  
+
+  return {data, startRecord, stopRecord};
+}
