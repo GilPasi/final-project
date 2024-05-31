@@ -1,8 +1,8 @@
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {api} from '../services/api';
 import ThemedButton  from '../Components/ThemedButton';
+import Title  from '../Components/Title';
 import usePipeline from '../Hooks/usePipeline';
 
 
@@ -83,12 +83,12 @@ export default function App() {
     <View style={{...styles.container, alignItems: videoUri ? 'center': 'left'}}>
       {videoUri ? (
         <View>
-          <ThemedButton
+          {uploadProgress != 100 &&<ThemedButton
             title="Send Video"
             onPress={() => uploadVideo(videoUri)}
-          />
-          <Text>{uploadProgress}</Text>
-          <Text>{uploadStatus}</Text>
+          />}
+            <Title text={`${uploadProgress}%`} size={40}/>
+            <Title text={uploadStatus} size={40}/>
         </View>
 
         ):(

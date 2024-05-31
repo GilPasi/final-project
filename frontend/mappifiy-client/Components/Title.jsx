@@ -1,25 +1,22 @@
 import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 
-function Index(props) {
+export default function Title({text, size}) {
+
+const styles = StyleSheet.create({
+    container: {},
+    title: {
+      fontFamily: "AlNile-Bold",
+      color: "rgba(98,114,84,1)",
+      fontSize: size ? size : 55,
+      textAlign: "center"
+    }
+  });
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to {"\n"}Mappify!</Text>
+      <Text style={styles.title}>{text}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: 329,
-    height: 150
-  },
-  title: {
-    fontFamily: "AlNile-Bold",
-    color: "rgba(98,114,84,1)",
-    fontSize: 55,
-    textAlign: "center"
-  }
-});
-
-export default Index;
