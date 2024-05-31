@@ -38,7 +38,7 @@ export default function App() {
       type: `video/${fileType}`
     });
   
-    const url = '/api/upload/'; 
+    const url = '/upload/'; 
   
     try {
       const response = await api.post(url, formData, {
@@ -58,8 +58,8 @@ export default function App() {
   };
   const fetchCsrfToken = async () => {
     try {
-      url = `${getBaseUrl()}/api/get-csrf-token/`
-      const response = await fetch(url);
+      url = `/get-csrf-token/`
+      const response = await api.get(url);
       const token = extractCsrfToken(response);
       csrfRef.current = token
       console.log("CSRF Token:", token);
@@ -71,7 +71,7 @@ export default function App() {
   const extractCsrfToken = (response) => {
     const cookies = response.headers.get('set-cookie');
     if (cookies) {
-      const token = cookies.split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
+      const token = cookies[0].split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
       return token;
     } else {
       console.error("No CSRF token found in set-cookie header");

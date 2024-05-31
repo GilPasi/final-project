@@ -4,7 +4,7 @@ import {getBaseUrl} from '../utilities/utils'
 export const API_BASE_URL = `${getBaseUrl()}/api`
 
 export const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL:API_BASE_URL,
   headers: {
     'Content-Type': 'multipart/form-data',
   },
