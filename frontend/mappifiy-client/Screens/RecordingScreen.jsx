@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ThemedButton  from '../Components/ThemedButton';
 import Title  from '../Components/Title';
+import LoadingBar  from '../Components/LoadingBar';
 import usePipeline from '../Hooks/usePipeline';
+
 
 
 export default function App() {
@@ -87,8 +89,8 @@ export default function App() {
             title="Send Video"
             onPress={() => uploadVideo(videoUri)}
           />}
-            <Title text={`${uploadProgress}%`} size={40}/>
             <Title text={uploadStatus} size={40}/>
+            <LoadingBar progress={uploadProgress}/>
         </View>
 
         ):(
