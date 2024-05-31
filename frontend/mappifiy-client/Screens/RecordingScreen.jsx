@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import {api} from '../services/api';
 import ThemedButton  from '../Components/ThemedButton';
-import {getBaseUrl} from '../utilities/utils'
+import usePipeline from '../Hooks/usePipeline';
 
 
 export default function App() {
@@ -12,9 +12,10 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false)
   const [videoUri, setVideoUri] = useState(null);
 
-  let cameraRef = useRef()
-  let csrfRef = useRef(null)
+  const {getCsrfToken} = usePipeline()
 
+  let cameraRef = useRef()
+  
   async function requestPermissions() {
     const cameraStatus = await requestCameraPermission();
     const microphoneStatus = await requestMicrophonePermission();
@@ -34,16 +35,17 @@ export default function App() {
     let formData = new FormData();
     formData.append('video', {
       uri,
-      name: `video${name}.${fileType}`,
+      name: `video${time}.${fileType}`,
       type: `video/${fileType}`
     });
   
     const url = '/upload/'; 
+    const token = getCsrfToken()
   
     try {
       const response = await api.post(url, formData, {
         headers: {
-          'X-CSRFToken': csrfRef.current
+          'X-CSRFToken': token
         }
       });
   
@@ -56,33 +58,9 @@ export default function App() {
       console.log('Error while trying to upload to server:', error);
     }
   };
-  const fetchCsrfToken = async () => {
-    try {
-      url = `/get-csrf-token/`
-      const response = await api.get(url);
-      const token = extractCsrfToken(response);
-      csrfRef.current = token
-      console.log("CSRF Token:", token);
-    } catch (err) {
-      console.error("Something went wrong while querying CSRF token:", err);
-    }
-  };
-
-  const extractCsrfToken = (response) => {
-    const cookies = response.headers.get('set-cookie');
-    if (cookies) {
-      const token = cookies[0].split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
-      return token;
-    } else {
-      console.error("No CSRF token found in set-cookie header");
-      return null;
-    }
-  };
-
 
   useEffect(() => {
     requestPermissions();
-    fetchCsrfToken()
   }, []);
 
 
