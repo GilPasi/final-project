@@ -70,7 +70,7 @@ export default function App() {
       type: `video/${fileType}`
     });
 
-     url = `${getBaseUrl()}/api/upload1/`
+     url = `${getBaseUrl()}/api/upload/`
     const response = await fetch(url, {
       method: 'POST',
       body: formData,
