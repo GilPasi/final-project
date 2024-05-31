@@ -70,8 +70,8 @@ export default function App() {
       type: `video/${fileType}`
     });
 
-     `${get_base_url()}/upload/`
-    const response = await fetch('http://10.0.0.2:8000/upload/', {
+     url = `${getBaseUrl()}/api/upload/`
+    const response = await fetch(url, {
       method: 'POST',
       body: formData,
       headers: {
@@ -88,7 +88,7 @@ export default function App() {
 
   const fetchCsrfToken = async () => {
     try {
-      url = 'http://10.0.0.2:8000/get-csrf-token/'
+      url = `${getBaseUrl()}/get-csrf-token/`
       const response = await fetch(url);
       const token = extractCsrfToken(response);
       csrfRef.current = token

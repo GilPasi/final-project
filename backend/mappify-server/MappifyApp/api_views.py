@@ -2,60 +2,101 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Video
 from .serializers import VideoSerializer
-from django.conf import settings
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.http import HttpResponse
 import os 
 
-class VideoListCreate(generics.ListCreateAPIView):
-    queryset = Video.objects.all()
-    serializer_class = VideoSerializer
+
+
+# class VideoListCreate(generics.ListCreateAPIView):
+#     queryset = Video.objects.all()
+#     serializer_class = VideoSerializer
     
 
-class VideoDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Video.objects.all()
-    serializer_class = VideoSerializer
+# class VideoDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Video.objects.all()
+#     serializer_class = VideoSerializer
 
 
-class UploadVideo(generics.CreateAPIView):
-    queryset = Video.objects.all()
-    serializer_class = VideoSerializer
+# class UploadVideo(generics.CreateAPIView):
+#     queryset = Video.objects.all()
+#     serializer_class = VideoSerializer
 
-    # parser_classes = (MultiPartParser, FormParser)
+#     # parser_classes = (MultiPartParser, FormParser)
 
-    def post(self, request, *args, **kwargs):
-        try:
-            print('request is: ', request)
-            print('POST is: ', request.POST)
-            print('FILES is: ', request.FILES)
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             print('request is: ', request)
+#             print('POST is: ', request.POST)
+#             print('FILES is: ', request.FILES)
 
-            serializer = self.get_serializer(data=request.data)
-            print("2")
-            if serializer.is_valid():
-                print("3")
+#             serializer = self.get_serializer(data=request.data)
+#             print("2")
+#             if serializer.is_valid():
+#                 print("3")
 
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                print("4")
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as err: 
-            print("error:", err)
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             else:
+#                 print("4")
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as err: 
+#             print("error:", err)
     
+
+def upload_video(request):
+    if request.method == 'POST':
+        video = request.FILES.get('video')
+        if video:
+            input_dir = os.path.join('media', 'input')
+            os.makedirs(input_dir, exist_ok=True)
+            video_path = os.path.join(input_dir, video.name)
+
+            with open(video_path, 'wb+') as destination:
+                for chunk in video.chunks():
+                    destination.write(chunk)
+                    
+            return JsonResponse({'message': 'Video uploaded successfully!'})
+    return JsonResponse({'message': 'Video upload failed.'}, status=400)
+
+
+def example_request(request):
+    query_post_example = """
+    let formData = new FormData();
+    formData.append('video', {
+      uri,
+      name: `video.${fileType}`,
+      type: `video/${fileType}`
+    });
+
+     url = `${getBaseUrl()}/api/upload/`
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
+     })
+    ===================================
+    If case of 403 error consider getting
+    a csrf cookie prior to the request
+    in the path /api/get_csrf_token
+    use it like so:
+    ===================================
+
+
+
+      const fetchCsrfToken = async () => {
+    try {
+      url = `${getBaseUrl()}/api/get-csrf-token/`
+      const response = await fetch(url);
+      const token = extractCsrfToken(response);
+      csrfRef.current = token
+      console.log("CSRF Token:", token);
+    } catch (err) {
+      console.error("Something went wrong while querying CSRF token:", err);
+    }
+  };"""
     
-
-
-    # def post(self, request, *args, **kwargs):
-    #     file = request.FILES['file']
-
-    #     save_dir = os.path.join(settings.BASE_DIR, '..', 'algorithm', 'input')
-    #     os.makedirs(save_dir, exist_ok=True)
-    #     file_path = os.path.join(save_dir, file.name)
-        
-    #     with open(file_path, 'wb+') as destination:
-    #         for chunk in file.chunks():
-    #             destination.write(chunk)
-        
-    #     return Response({"message": "Video uploaded successfully"}),
-
-    def get(self, request, *args, **kwargs):
-        data = {"message": "This is a GET request response"}
-        return Response(data, status=status.HTTP_200_OK)
+    return HttpResponse(query_post_example, content_type="text/plain")
