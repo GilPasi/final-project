@@ -1,8 +1,7 @@
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {api, videoApi, API_BASE_URL} from '../services/api';
-import axios from 'axios'
+import {api} from '../services/api';
 import ThemedButton  from '../Components/ThemedButton';
 import {getBaseUrl} from '../utilities/utils'
 
@@ -39,12 +38,11 @@ export default function App() {
       type: `video/${fileType}`
     });
   
-    const url = `${getBaseUrl()}/api/upload/`;
+    const url = '/api/upload/'; 
   
     try {
-      const response = await axios.post(url, formData, {
+      const response = await api.post(url, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
           'X-CSRFToken': csrfRef.current
         }
       });
