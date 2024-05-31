@@ -88,7 +88,7 @@ export default function App() {
 
   const fetchCsrfToken = async () => {
     try {
-      url = `${getBaseUrl()}/get-csrf-token/`
+      url = `${getBaseUrl()}/api/get-csrf-token/`
       const response = await fetch(url);
       const token = extractCsrfToken(response);
       csrfRef.current = token

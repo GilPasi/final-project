@@ -100,3 +100,9 @@ def example_request(request):
   };"""
     
     return HttpResponse(query_post_example, content_type="text/plain")
+
+
+def get_csrf_token(request):
+    csrf_token = get_token(request)
+    print(f"CSRF Token: {csrf_token}")
+    return JsonResponse({'csrfToken': csrf_token})

@@ -6,8 +6,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import VideoForm
 from .models import Video
-from django.http import JsonResponse
-from django.middleware.csrf import get_token
 # import cv2
 # Create your views here.
 
@@ -56,20 +54,3 @@ def delete_video(request, pk):
         return redirect('video_list')
     print("Rendering delete_video template")
     return render(request, 'MappifyApp/delete_video.html', {'video': video})
-
-def get_csrf_token(request):
-    csrf_token = get_token(request)
-    print(f"CSRF Token: {csrf_token}")
-    return JsonResponse({'csrfToken': csrf_token})
-
-# def process_video(video_path):
-#     cap = cv2.VideoCapture(video_path)
-#     while cap.isOpened():
-#         ret, frame = cap.read()
-#         if not ret:
-#             break
-#         # Process the frame here
-#         # For example, detect edges
-#         edges = cv2.Canny(frame, 100, 200)
-#         # Further processing to map vertices and edges
-#     cap.release()
