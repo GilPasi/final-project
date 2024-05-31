@@ -30,11 +30,11 @@ export default function App() {
   const sendVideoToServer = async (uriObj) => {
     const uri = uriObj.uri;
     const fileType = uri.split('.').pop();
-  
+    const time = new Date().getSeconds()
     let formData = new FormData();
     formData.append('video', {
       uri,
-      name: `video.${fileType}`,
+      name: `video${name}.${fileType}`,
       type: `video/${fileType}`
     });
   
@@ -84,8 +84,6 @@ export default function App() {
     requestPermissions();
     fetchCsrfToken()
   }, []);
-
-  
 
 
   const startRecording = async () => {
@@ -180,87 +178,3 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
-
-
-
-
-// import { useState, useEffect } from 'react';
-// import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-// import { Gyroscope } from 'expo-sensors';
-// import {getSmartPhoneFps} from '../utilities/utils'
-
-// export default function App() {
-//   const [{ x, y, z }, setData] = useState({
-//     x: 0,
-//     y: 0,
-//     z: 0,
-//   });
-//   const [subscription, setSubscription] = useState(null);
-//   const [recording, setRecording] = useState([])
-
-
-//   const _subscribe = () => {
-//     setSubscription(
-//       Gyroscope.addListener(gyroscopeData => {
-//         setData(gyroscopeData);
-//         setRecording([...recording,gyroscopeData])
-//       })
-//     );
-//   };
-
-//   const _unsubscribe = () => {
-//     subscription && subscription.remove();
-//     setSubscription(null);
-//   };
-
-//   useEffect(() => {
-//     _subscribe();
-//     Gyroscope.setUpdateInterval(getSmartPhoneFps())
-//     return () => _unsubscribe();
-//   }, []);
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.text}>Gyroscope:</Text>
-//        <Text style={styles.text}>x: {x}</Text>
-//       <Text style={styles.text}>y: {y}</Text>
-//       <Text style={styles.text}>z: {z}</Text>
-//      <View style={styles.buttonContainer}>
-//         <TouchableOpacity 
-//           onPress={subscription ? _unsubscribe : _subscribe}
-//           style={styles.button}
-//         >
-//           <Text>{subscription ? 'On' : 'Off'}</Text>
-//         </TouchableOpacity>
-//       </View>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     paddingHorizontal: 10,
-//   },
-//   text: {
-//     textAlign: 'center',
-//   },
-//   buttonContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'stretch',
-//     marginTop: 15,
-//   },
-//   button: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     backgroundColor: '#eee',
-//     padding: 10,
-//   },
-//   middleButton: {
-//     borderLeftWidth: 1,
-//     borderRightWidth: 1,
-//     borderColor: '#ccc',
-//   },
-// });
