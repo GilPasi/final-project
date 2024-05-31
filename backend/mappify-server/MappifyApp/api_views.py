@@ -43,7 +43,33 @@ import os
 #                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #         except Exception as err: 
 #             print("error:", err)
-    
+# views.py
+
+import os
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import VideoUploadSerializer
+
+class UploadVideoAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = VideoUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            video = serializer.validated_data['video']
+            input_dir = os.path.join('media', 'input')
+            os.makedirs(input_dir, exist_ok=True)
+            video_path = os.path.join(input_dir, video.name)
+
+            with open(video_path, 'wb+') as destination:
+                for chunk in video.chunks():
+                    destination.write(chunk)
+            
+            return Response({'message': 'Video uploaded successfully!'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 def upload_video(request):
     if request.method == 'POST':
@@ -59,7 +85,6 @@ def upload_video(request):
                     
             return JsonResponse({'message': 'Video uploaded successfully!'})
     return JsonResponse({'message': 'Video upload failed.'}, status=400)
-
 
 def example_request(request):
     query_post_example = """
@@ -84,7 +109,6 @@ def example_request(request):
     in the path /api/get_csrf_token
     use it like so:
     ===================================
-
 
 
       const fetchCsrfToken = async () => {
