@@ -1,8 +1,5 @@
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.response import Response
-from .models import Video
-from .serializers import VideoSerializer
-from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.http import HttpResponse
 import os 

@@ -7,43 +7,11 @@ import ThemedButton  from '../Components/ThemedButton';
 import {getBaseUrl} from '../utilities/utils'
 
 
-// const sendVideoToServer1 = async (videoUri) => {
-//     const videoFile = {
-//       uri: videoUri,
-//       name: 'video.mp4',
-//       type: 'video/mp4',
-//     };
-
-//     const formData = new FormData();
-//     formData.append('video', videoFile);
-//     formData.append('title', 'Sample Video');
-
-//     console.log("vidfile ,",typeof(videoFile))
-
-
-//     const getFormData = object => Object.keys(object).reduce((formData, key) => {
-//       formData.append(key, object[key]);
-//       return formData;
-//   }, new FormData());
-
-//     const response = await videoApi.post('/upload/', getFormData(formData));
-
-//     const videoData = {
-//       title: 'Sample Video',
-//       description: 'This is a sample video description',
-//     };
-
-//     objectToSend = videoData
-
-// }
-
-
 export default function App() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const [isRecording, setIsRecording] = useState(false)
   const [videoUri, setVideoUri] = useState(null);
-  // const [csrfToken, setCsrfToken] = useState(null)
 
   let cameraRef = useRef()
   let csrfRef = useRef(null)
@@ -59,9 +27,10 @@ export default function App() {
     }
   }
 
+
   const sendVideoToServer = async (uriObj) => {
-    uri = uriObj.uri
-    let fileType = uri.split('.').pop();
+    const uri = uriObj.uri;
+    const fileType = uri.split('.').pop();
   
     let formData = new FormData();
     formData.append('video', {
@@ -69,23 +38,26 @@ export default function App() {
       name: `video.${fileType}`,
       type: `video/${fileType}`
     });
-
-     url = `${getBaseUrl()}/api/upload/`
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-CSRFToken': csrfRef.current
-      },
-    });
-
-    if (response.ok) {
-      console.log('Video uploaded successfully!');
-    } else {
-      console.log('Video upload failed.');
+  
+    const url = `${getBaseUrl()}/api/upload/`;
+  
+    try {
+      const response = await axios.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'X-CSRFToken': csrfRef.current
+        }
+      });
+  
+      if (response.status === 201) {
+        console.log('Video uploaded successfully!');
+      } else {
+        console.log('Video upload failed.');
+      }
+    } catch (error) {
+      console.log('Error while trying to upload to server:', error);
     }
   };
-
   const fetchCsrfToken = async () => {
     try {
       url = `${getBaseUrl()}/api/get-csrf-token/`
