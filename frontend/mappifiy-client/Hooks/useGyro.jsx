@@ -3,7 +3,7 @@ import { Gyroscope } from 'expo-sensors';
 import { useState, useEffect } from 'react';
 import {getSmartPhoneFps} from '../utilities/utils'
 
-export default function useGyro() {
+export default function useGyro(isRecording) {
   const [data, setData] = useState([{
     x: 0,
     y: 0,
@@ -21,9 +21,12 @@ export default function useGyro() {
   };
 
   const _unsubscribe = () => {
-    subscription && subscription.remove();
-    setSubscription(null);
+    if (!isRecording && subscription) {
+      subscription.remove();
+      setSubscription(null);
+    }
   };
+  
 
   useEffect(() => {
     _subscribe();

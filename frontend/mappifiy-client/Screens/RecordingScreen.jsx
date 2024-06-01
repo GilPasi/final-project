@@ -6,91 +6,55 @@ import Title  from '../Components/Title';
 import LoadingBar  from '../Components/LoadingBar';
 import usePipeline from '../Hooks/usePipeline';
 import useGyro from '../Hooks/useGyro'
+import useCam from '../Hooks/useCam';
 
 
 export default function RecordingScreen() {
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
   const [isRecording, setIsRecording] = useState(false)
-  const [videoUri, setVideoUri] = useState(null);
-
   const {uploadProgress, uploadStatus, uploadVideo } = usePipeline()
-  const gyro = useGyro()
+  const cam = useCam(isRecording)
+  const gyro = useGyro(isRecording)
 
-  let cameraRef = useRef()
-  
-  async function requestPermissions() {
-    const cameraStatus = await requestCameraPermission();
-    const microphoneStatus = await requestMicrophonePermission();
-
-    if (cameraStatus.granted && microphoneStatus.granted) {
-      console.log("Permissions granted");
-    } else {
-      console.log("Permissions not granted");
-    }
-  }
 
   useEffect(() => {
-    requestPermissions();
+    cam.requestPermissions();
   }, []);
-
-
-  const startRecording = async () => {
-    if (cameraRef.current) {
-      setIsRecording(true);
-      try {
-        gyro.startRecord()
-        await cameraRef.current.recordAsync()
-          .then(vidUri => {
-            console.log("Video got ", vidUri)
-            setVideoUri(vidUri)
-          })
-          .catch(err => console.log("something went wrong", err))
-        setIsRecording(false);
-
-      } catch (error) {
-        setIsRecording(false);
-      }
-    }};
-
-  const stopRecording = () => {
-    if (cameraRef.current && isRecording) {
-      cameraRef.current.stopRecording();
-    }
-    gyro.stopRecord()
-  };
 
   function toggleRecord(){
     if(isRecording){
       console.log("Recording stopped")
-      stopRecording()
+      gyro.stopRecord()
+      cam.stopRecording()
+      setIsRecording(false)
     }
     else{
       console.log("Recording started")
-      startRecording()
+      gyro.startRecord()
+      cam.startRecording()
+      setIsRecording(true)
     }
   }
 
-  if (!cameraPermission || !microphonePermission) {
+  if (!cam.cameraPermission || !cam.microphonePermission) {
     return <View />;
   }
 
-  if (!cameraPermission.granted || !microphonePermission.granted) {
+  if (!cam.cameraPermission.granted || !cam.microphonePermission.granted) {
     return (
       <View style={styles.container}>
         <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
-        <ThemedButton onPress={requestPermissions} title="Grant Permission" />
+        <ThemedButton onPress={cam.requestPermissions} title="Grant Permission" />
       </View>
     );
   }
 
   return (
-    <View style={{...styles.container, alignItems: videoUri ? 'center': 'left'}}>
-      {videoUri ? (
+    <View style={{...styles.container, alignItems: cam.videoUri ? 'center': 'left'}}>
+      {cam.videoUri ? (
         <View>
           {uploadProgress != 100 &&<ThemedButton
             title="Send Video"
-            onPress={() => uploadVideo(videoUri)}
+            onPress={() => uploadVideo(cam.videoUri)}
           />}
             <Title text={uploadStatus} size={40}/>
             <LoadingBar progress={uploadProgress}/>
@@ -98,7 +62,7 @@ export default function RecordingScreen() {
 
         ):(
           <View style={styles.camera}>
-            <CameraView mode="video" style={styles.camera} ref={cameraRef}>
+            <CameraView mode="video" style={styles.camera} ref={cam.cameraRef}>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.button} onPress={toggleRecord}>
                   <Text style={{fontSize:100, color:"#C41E3A"}}>{isRecording? "■" : "⬤" }</Text>
