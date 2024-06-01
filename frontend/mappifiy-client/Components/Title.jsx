@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import useLoadFonts from '../Hooks/useLoadFonts'; // Adjust the path accordingly
+import theme from './StaticStyle';
 
 export default function Title({ text, size }) {
+
   const styles = StyleSheet.create({
     container: {},
     title: {
-      fontFamily: 'Alef-Bold',
+      fontFamily: theme.fonts.primary,
       color: 'rgba(98,114,84,1)',
       fontSize: size ? size : 55,
       textAlign: 'center',

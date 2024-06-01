@@ -12,6 +12,6 @@ export default function useLoadFonts() {
       await SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
-
+  
   return { fontsLoaded, fontError, onLayoutRootView };
 }
