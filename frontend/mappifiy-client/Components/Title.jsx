@@ -1,16 +1,16 @@
-import React, { Component } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import React, { useEffect } from 'react';
+import { StyleSheet, View, Text } from 'react-native';
+import useLoadFonts from '../Hooks/useLoadFonts'; // Adjust the path accordingly
 
-export default function Title({text, size}) {
-
-const styles = StyleSheet.create({
+export default function Title({ text, size }) {
+  const styles = StyleSheet.create({
     container: {},
     title: {
-      fontFamily: "AlNile-Bold",
-      color: "rgba(98,114,84,1)",
+      fontFamily: 'Alef-Bold',
+      color: 'rgba(98,114,84,1)',
       fontSize: size ? size : 55,
-      textAlign: "center"
-    }
+      textAlign: 'center',
+    },
   });
 
   return (
@@ -19,4 +19,3 @@ const styles = StyleSheet.create({
     </View>
   );
 }
-

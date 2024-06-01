@@ -5,7 +5,7 @@ import ThemedButton  from '../Components/ThemedButton';
 import Title  from '../Components/Title';
 import LoadingBar  from '../Components/LoadingBar';
 import usePipeline from '../Hooks/usePipeline';
-
+import useGyro from '../Hooks/useGyro'
 
 
 export default function RecordingScreen() {
@@ -37,8 +37,8 @@ export default function RecordingScreen() {
 
   const startRecording = async () => {
     if (cameraRef.current) {
+      setIsRecording(true);
       try {
-        setIsRecording(true);
         gyro.startRecord()
         await cameraRef.current.recordAsync()
           .then(vidUri => {
@@ -108,8 +108,6 @@ export default function RecordingScreen() {
             <Text>{gyro.data.x}</Text>
             <Text>{gyro.data.y}</Text>
             <Text>{gyro.data.z}</Text>
-
-
           </View>
     )}
     </View>
@@ -141,49 +139,3 @@ const styles = StyleSheet.create({
     color: 'white',
   },
 });
-
-
-
-import { Gyroscope } from 'expo-sensors';
-
-export function useGyro() {
-  const [data, setData] = useState([{
-    x: 0,
-    y: 0,
-    z: 0,
-  }]);
-  const [subscription, setSubscription] = useState(null);
-
-  const _subscribe = () => {
-    setSubscription(
-      Gyroscope.addListener(gyroscopeData => {
-        setData(prevData=> [...prevData, gyroscopeData]);
-        // console.log(data)
-      })
-    );
-  };
-
-  const _unsubscribe = () => {
-    subscription && subscription.remove();
-    setSubscription(null);
-  };
-
-  useEffect(() => {
-    _subscribe();
-    Gyroscope.setUpdateInterval(10)
-    return () => _unsubscribe();
-  }, []);
-
-  const startRecord = () => {
-    setData([])
-    _subscribe()
-  }
-
-  const stopRecord = () =>{
-    _subscribe
-    console.log(data)
-  }
-  
-
-  return {data, startRecord, stopRecord};
-}

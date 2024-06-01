@@ -8,15 +8,15 @@ import VideoListScreen from './Screens/VideoListScreen';
 const Stack = createNativeStackNavigator();
 
 function App() {
-    // const { fontsLoaded, fontError, onLayoutRootView } = useLoadFonts();
+    const { fontsLoaded, fontError, onLayoutRootView } = useLoadFonts();
 
-    // useEffect(() => {
-    //   onLayoutRootView();
-    // }, [onLayoutRootView]);
+    useEffect(() => {
+      onLayoutRootView();
+    }, [onLayoutRootView]);
 
-    // if (!fontsLoaded && !fontError) {
-    //   return null;
-    // }
+    if (!fontsLoaded && !fontError) {
+      return null;
+    }
 
   return ( 
     <NavigationContainer>

@@ -34,6 +34,15 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": {
+            "Inter-Black": "./assets/fonts/Inter-Black.otf",
+            "Alef-Bold": "./assets/fonts/Alef-Bold.ttf"
+          }
+        }
       ]
     ]
   }
