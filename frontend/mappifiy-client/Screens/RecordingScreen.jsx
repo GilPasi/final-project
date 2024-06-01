@@ -1,154 +1,79 @@
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {api} from '../services/api';
-import ThemedButton  from '../Components/ThemedButton';
-import {getBaseUrl} from '../utilities/utils'
+import ThemedButton from '../Components/ThemedButton';
+import Title from '../Components/Title';
+import LoadingBar from '../Components/LoadingBar';
+import usePipeline from '../Hooks/usePipeline';
+import useGyro from '../Hooks/useGyro'
+import useCam from '../Hooks/useCam';
 
 
-export default function App() {
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
+export default function RecordingScreen() {
   const [isRecording, setIsRecording] = useState(false)
-  const [videoUri, setVideoUri] = useState(null);
-
-  let cameraRef = useRef()
-  let csrfRef = useRef(null)
-
-  async function requestPermissions() {
-    const cameraStatus = await requestCameraPermission();
-    const microphoneStatus = await requestMicrophonePermission();
-
-    if (cameraStatus.granted && microphoneStatus.granted) {
-      console.log("Permissions granted");
-    } else {
-      console.log("Permissions not granted");
-    }
-  }
-
-
-  const sendVideoToServer = async (uriObj) => {
-    const uri = uriObj.uri;
-    const fileType = uri.split('.').pop();
-    const time = new Date().getSeconds()
-    let formData = new FormData();
-    formData.append('video', {
-      uri,
-      name: `video${name}.${fileType}`,
-      type: `video/${fileType}`
-    });
-  
-    const url = '/upload/'; 
-  
-    try {
-      const response = await api.post(url, formData, {
-        headers: {
-          'X-CSRFToken': csrfRef.current
-        }
-      });
-  
-      if (response.status === 201) {
-        console.log('Video uploaded successfully!');
-      } else {
-        console.log('Video upload failed.');
-      }
-    } catch (error) {
-      console.log('Error while trying to upload to server:', error);
-    }
-  };
-  const fetchCsrfToken = async () => {
-    try {
-      url = `/get-csrf-token/`
-      const response = await api.get(url);
-      const token = extractCsrfToken(response);
-      csrfRef.current = token
-      console.log("CSRF Token:", token);
-    } catch (err) {
-      console.error("Something went wrong while querying CSRF token:", err);
-    }
-  };
-
-  const extractCsrfToken = (response) => {
-    const cookies = response.headers.get('set-cookie');
-    if (cookies) {
-      const token = cookies[0].split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
-      return token;
-    } else {
-      console.error("No CSRF token found in set-cookie header");
-      return null;
-    }
-  };
+  const { uploadProgress, uploadStatus, uploadVideo } = usePipeline()
+  const cam = useCam(isRecording)
+  const gyro = useGyro(isRecording)
 
 
   useEffect(() => {
-    requestPermissions();
-    fetchCsrfToken()
+    cam.requestPermissions();
   }, []);
 
-
-  const startRecording = async () => {
-    if (cameraRef.current) {
-      try {
-        setIsRecording(true);
-        await cameraRef.current.recordAsync()
-          .then(vidUri => {
-            console.log("Video got ", vidUri)
-            setVideoUri(vidUri)
-          })
-          .catch(err => console.log("something went wrong", err))
-        setIsRecording(false);
-
-      } catch (error) {
-        setIsRecording(false);
-      }
-    }};
-
-  const stopRecording = () => {
-    if (cameraRef.current && isRecording) {
-      cameraRef.current.stopRecording();
-    }
-  };
-
-  function toggleRecord(){
-    if(isRecording){
+  function toggleRecord() {
+    if (isRecording) {
       console.log("Recording stopped")
-      stopRecording()
+      gyro.stopRecording()
+      cam.stopRecording()
+      setIsRecording(false)
     }
-    else{
+    else {
       console.log("Recording started")
-      startRecording()
+      gyro.startRecording()
+      cam.startRecording()
+      setIsRecording(true)
     }
   }
 
-  if (!cameraPermission || !microphonePermission) {
+  if (!cam.cameraPermission || !cam.microphonePermission) {
     return <View />;
   }
 
-  if (!cameraPermission.granted || !microphonePermission.granted) {
+  if (!cam.cameraPermission.granted || !cam.microphonePermission.granted) {
     return (
       <View style={styles.container}>
         <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
-        <ThemedButton onPress={requestPermissions} title="Grant Permission" />
+        <ThemedButton onPress={cam.requestPermissions} title="Grant Permission" />
       </View>
     );
   }
 
   return (
-    <View style={{...styles.container, alignItems: videoUri ? 'center': 'left'}}>
-      {videoUri ? (
-        <ThemedButton
+    <View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
+      {cam.videoUri ? (
+        <View>
+          {uploadProgress != 100 && <ThemedButton
             title="Send Video"
-            onPress={() => sendVideoToServer(videoUri)}
-          />
-        ):(
-          <CameraView mode="video" style={styles.camera} ref={cameraRef}>
+            onPress={() => uploadVideo(cam.videoUri)}
+          />}
+          <Title text={uploadStatus} size={40} />
+          <LoadingBar progress={uploadProgress} />
+        </View>
+
+      ) : (
+        <View style={styles.camera}>
+          <CameraView mode="video" style={styles.camera} ref={cam.cameraRef}>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.button} onPress={toggleRecord}>
-                <Text style={{fontSize:100, color:"#C41E3A"}}>{isRecording? "■" : "⬤" }</Text>
+                <Text style={{ fontSize: 100, color: "#C41E3A" }}>{isRecording ? "■" : "⬤"}</Text>
               </TouchableOpacity>
             </View>
           </CameraView>
-    )}
+          <Text>{gyro.data.x}</Text>
+          <Text>{gyro.data.y}</Text>
+          <Text>{gyro.data.z}</Text>
+        </View>
+      )}
     </View>
   );
 }

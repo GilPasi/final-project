@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { StyleSheet, View, Text } from "react-native";
 import theme from "../Components/StaticStyle";
 import ThemedButton  from '../Components/ThemedButton';
+import Title  from '../Components/Title';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
@@ -11,16 +12,15 @@ export function Page() {
   async function fetchData() {
     try {
 
-      const response = await axios.get('http://localhost:8000/api/videos/'); // Replace with your actual API endpoint
-      console.log(response.data); // Handle the response data here
+      const response = await axios.get('http://localhost:8000/api/videos/'); 
     } catch (error) {
-      console.error(error); // Handle errors here
+      console.error(error);
     }
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome To Mappify!</Text>
+      <Title text='Welcome To Mappify!'/> 
       <ThemedButton
         title="To Scan"
         onPress={() => {

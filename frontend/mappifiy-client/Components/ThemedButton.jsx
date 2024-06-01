@@ -1,5 +1,4 @@
-import React, { Component } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import {TouchableOpacity} from 'react-native'
 import theme from "./StaticStyle"
 
@@ -10,7 +9,7 @@ function ThemedButton({title, buttonStyle, textStyle, onPress}) {
           onPress = {onPress} 
     >
 
-      <Text style={textStyle ? textStyle : styles.text}> 
+      <Text style={styles.text}> 
         {title}
       </Text>
     </TouchableOpacity>
@@ -29,7 +28,8 @@ const styles = StyleSheet.create({
       textAlign:"center",
       fontSize:30, 
       margin: 15,
-      color: theme.colors.primary
+      color: theme.colors.primary,
+      fontFamily: theme.fonts.primary
   },
 })
 
