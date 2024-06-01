@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import VideoUploadSerializer
+import json 
 
 class UploadVideoAPIView(APIView):
     def get(self, request, *args, **kwargs):
@@ -23,7 +24,6 @@ class UploadVideoAPIView(APIView):
         return Response({'csrfToken': csrf_token})
 
     def example_request(self, request):
-        print("AAAAA")
         query_post_example = """
         let formData = new FormData();
         formData.append('video', {
@@ -70,10 +70,13 @@ class UploadVideoAPIView(APIView):
             return Response({'error': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
     
     def upload_video(self, request, *args, **kwargs):
+        adaptedGyroData = [json.loads(request.data['gyroscopeData'])]
+        request.data['gyroscopeData'] = adaptedGyroData 
+
         serializer = VideoUploadSerializer(data=request.data)
         if serializer.is_valid():
             video = serializer.validated_data['video']
-            input_dir = os.path.join('media', 'input')
+            input_dir = os.path.join('media', 'videos')
             os.makedirs(input_dir, exist_ok=True)
             video_path = os.path.join(input_dir, video.name)
 
@@ -82,4 +85,5 @@ class UploadVideoAPIView(APIView):
                     destination.write(chunk)
             
             return Response({'message': 'Video uploaded successfully!'}, status=status.HTTP_201_CREATED)
+        print("Serializer error: ",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
