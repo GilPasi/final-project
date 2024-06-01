@@ -12,7 +12,8 @@ export default function useGyro(isRecording) {
   
   const [subscription, setSubscription] = useState(null);
 
-  const _subscribe = () => {
+  const startRecording = () => {
+    setData([])
     setSubscription(
       Gyroscope.addListener(gyroscopeData => {
         setData(prevData=> [...prevData, gyroscopeData]);
@@ -20,30 +21,21 @@ export default function useGyro(isRecording) {
     );
   };
 
-  const _unsubscribe = () => {
+  const stopRecording = () => {
     if (!isRecording && subscription) {
       subscription.remove();
       setSubscription(null);
+      console.log(data.slice(0, 10), "\n...")
     }
   };
   
 
   useEffect(() => {
-    _subscribe();
+    startRecording();
     const milisecondsInSecond = 1000 
     Gyroscope.setUpdateInterval(milisecondsInSecond / getSmartPhoneFps())
-    return () => _unsubscribe();
+    return () => stopRecording();
   }, []);
 
-  const startRecord = () => {
-    setData([])
-    _subscribe()
-  }
-
-  const stopRecord = () =>{
-    _unsubscribe()
-    console.log(data.slice(0, 10), "\n...")
-  }
-  
-  return {data, startRecord, stopRecord};
+  return {data, startRecording, stopRecording};
 }

@@ -1,9 +1,9 @@
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import ThemedButton  from '../Components/ThemedButton';
-import Title  from '../Components/Title';
-import LoadingBar  from '../Components/LoadingBar';
+import ThemedButton from '../Components/ThemedButton';
+import Title from '../Components/Title';
+import LoadingBar from '../Components/LoadingBar';
 import usePipeline from '../Hooks/usePipeline';
 import useGyro from '../Hooks/useGyro'
 import useCam from '../Hooks/useCam';
@@ -11,7 +11,7 @@ import useCam from '../Hooks/useCam';
 
 export default function RecordingScreen() {
   const [isRecording, setIsRecording] = useState(false)
-  const {uploadProgress, uploadStatus, uploadVideo } = usePipeline()
+  const { uploadProgress, uploadStatus, uploadVideo } = usePipeline()
   const cam = useCam(isRecording)
   const gyro = useGyro(isRecording)
 
@@ -20,16 +20,16 @@ export default function RecordingScreen() {
     cam.requestPermissions();
   }, []);
 
-  function toggleRecord(){
-    if(isRecording){
+  function toggleRecord() {
+    if (isRecording) {
       console.log("Recording stopped")
-      gyro.stopRecord()
+      gyro.stopRecording()
       cam.stopRecording()
       setIsRecording(false)
     }
-    else{
+    else {
       console.log("Recording started")
-      gyro.startRecord()
+      gyro.startRecording()
       cam.startRecording()
       setIsRecording(true)
     }
@@ -49,31 +49,31 @@ export default function RecordingScreen() {
   }
 
   return (
-    <View style={{...styles.container, alignItems: cam.videoUri ? 'center': 'left'}}>
+    <View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
       {cam.videoUri ? (
         <View>
-          {uploadProgress != 100 &&<ThemedButton
+          {uploadProgress != 100 && <ThemedButton
             title="Send Video"
             onPress={() => uploadVideo(cam.videoUri)}
           />}
-            <Title text={uploadStatus} size={40}/>
-            <LoadingBar progress={uploadProgress}/>
+          <Title text={uploadStatus} size={40} />
+          <LoadingBar progress={uploadProgress} />
         </View>
 
-        ):(
-          <View style={styles.camera}>
-            <CameraView mode="video" style={styles.camera} ref={cam.cameraRef}>
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button} onPress={toggleRecord}>
-                  <Text style={{fontSize:100, color:"#C41E3A"}}>{isRecording? "■" : "⬤" }</Text>
-                </TouchableOpacity>
-              </View>
-            </CameraView>
-            <Text>{gyro.data.x}</Text>
-            <Text>{gyro.data.y}</Text>
-            <Text>{gyro.data.z}</Text>
-          </View>
-    )}
+      ) : (
+        <View style={styles.camera}>
+          <CameraView mode="video" style={styles.camera} ref={cam.cameraRef}>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={toggleRecord}>
+                <Text style={{ fontSize: 100, color: "#C41E3A" }}>{isRecording ? "■" : "⬤"}</Text>
+              </TouchableOpacity>
+            </View>
+          </CameraView>
+          <Text>{gyro.data.x}</Text>
+          <Text>{gyro.data.y}</Text>
+          <Text>{gyro.data.z}</Text>
+        </View>
+      )}
     </View>
   );
 }
