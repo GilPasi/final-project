@@ -65,13 +65,10 @@ export default function RecordingScreen() {
           <CameraView mode="video" style={styles.camera} ref={cam.cameraRef}>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.button} onPress={toggleRecord}>
-                <Text style={{ fontSize: 100, color: "#C41E3A" }}>{isRecording ? "■" : "⬤"}</Text>
+                <Text style={styles.recButton}>{isRecording ? "■" : "⬤"}</Text>
               </TouchableOpacity>
             </View>
           </CameraView>
-          <Text>{gyro.data.x}</Text>
-          <Text>{gyro.data.y}</Text>
-          <Text>{gyro.data.z}</Text>
         </View>
       )}
     </View>
@@ -83,6 +80,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  recButton: {
+    fontSize: 100,
+    color: "#C41E3A"
+  },
+
   camera: {
     flex: 1,
   },
