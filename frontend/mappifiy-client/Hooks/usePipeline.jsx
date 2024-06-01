@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 
-
+export const SUCCESS_MSG = 'Video uploaded successfully!'
+export const FAILURE_MSG = ''
 
 const extractCsrfToken = (response) => {
     const cookies = response.headers.get('set-cookie');
@@ -14,7 +15,7 @@ const extractCsrfToken = (response) => {
     }
   };
 
-const usePipeline = () => {
+export const usePipeline = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
   const csrfToken = useRef()
@@ -38,7 +39,7 @@ const usePipeline = () => {
     return csrfToken.current
   };
 
-  const uploadVideo = async (uriObj) => {
+  const uploadVideo = async (uriObj, gyroscopeData) => {
 
     const uri = uriObj.uri;
     const fileType = uri.split('.').pop();
@@ -47,10 +48,14 @@ const usePipeline = () => {
     formData.append('video', {
       uri,
       name: `video.${fileType}`,
-      type: `video/${fileType}`
-    });
-  
+      type: `video/${fileType}`,
+    }
+  );
 
+  formData.append('gyroscopeData' ,{ x: 5.0, y: 2.3, z: 5.5})
+
+
+  
     try {
       const response = await api.post('/upload/', formData, {
         headers: {
@@ -65,9 +70,9 @@ const usePipeline = () => {
 
 
       if (response.status === 201) {
-        console.log('Video uploaded successfully!');
+        console.log(SUCCESS_MSG);
       } else {
-        console.log('Video upload failed.');
+        console.log(FAILURE_MSG);
       }
 
       setUploadStatus('Upload successful!');
@@ -80,5 +85,3 @@ const usePipeline = () => {
 
   return {uploadProgress, uploadStatus, uploadVideo, getCsrfToken };
 };
-
-export default usePipeline;

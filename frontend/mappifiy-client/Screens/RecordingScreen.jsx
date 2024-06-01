@@ -1,10 +1,10 @@
-import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
-import { useEffect, useRef, useState } from 'react';
+import { CameraView } from 'expo-camera';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ThemedButton from '../Components/ThemedButton';
 import Title from '../Components/Title';
 import LoadingBar from '../Components/LoadingBar';
-import usePipeline from '../Hooks/usePipeline';
+import {usePipeline, FAILURE_MSG } from '../Hooks/usePipeline';
 import useGyro from '../Hooks/useGyro'
 import useCam from '../Hooks/useCam';
 
@@ -52,9 +52,9 @@ export default function RecordingScreen() {
     <View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
       {cam.videoUri ? (
         <View>
-          {uploadProgress != 100 && <ThemedButton
+          {uploadStatus == FAILURE_MSG && <ThemedButton
             title="Send Video"
-            onPress={() => uploadVideo(cam.videoUri)}
+            onPress={() => uploadVideo(cam.videoUri, gyro.data)}
           />}
           <Title text={uploadStatus} size={40} />
           <LoadingBar progress={uploadProgress} />
