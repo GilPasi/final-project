@@ -9,6 +9,7 @@ from rest_framework import status
 from .serializers import VideoUploadSerializer
 import json 
 
+
 class UploadVideoAPIView(APIView):
     def get(self, request, *args, **kwargs):
         if self.request.path.endswith('get-csrf-token/'):
@@ -65,11 +66,11 @@ class UploadVideoAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         if self.request.path.endswith('upload/'):
-            return self.upload_video(request)
+            return self.upload_map_data(request)
         else:
             return Response({'error': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
     
-    def upload_video(self, request, *args, **kwargs):
+    def upload_map_data(self, request, *args, **kwargs):
         adaptedGyroData = [json.loads(request.data['gyroscopeData'])]
         request.data['gyroscopeData'] = adaptedGyroData 
 

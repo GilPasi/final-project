@@ -10,7 +10,7 @@ import queue
 from PIL import Image
 from width_estimating import multiple_normalize_object_width
 from utils import get_algorithm_dir,ipc_file_path, SNAPSHOT_SIZE
-from cropping import glue_map, crop_prediction
+from image_utils import glue_map, crop_prediction
 
 def get_predictions():
     segmentor_script_path = os.path.join(get_algorithm_dir(), "segmentor.py")
@@ -52,7 +52,6 @@ def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
         os.remove(ipc_file_path(env_name))
         output_queue.put(prediction)
     
-
 
 def _present_results(depth_sample = None, segmentation_sample = None,
                     combined_sample = None, image_path = None):

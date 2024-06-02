@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import cv2
 
 from PIL import Image
 from utils import list_directory_contents, prefix_from_absolute_path
@@ -75,6 +76,34 @@ def crop_prediction(prediction: np.ndarray):
             logging.error(f"Image {image_path} was damaged, not enough light pixels")
     
     return cropped_matrices
+
+ # TODO: test this 
+def extract_snapshots(self, video, interval_seconds:int = 0 ):
+    video_data = video.read()
+    np_arr = np.frombuffer(video_data, np.uint8)
+    cap = cv2.VideoCapture(cv2.imdecode(np_arr, cv2.IMREAD_COLOR))
+
+    if not cap.isOpened():
+        print("Error opening video stream or file")
+
+    frame_number = 0
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    interval = int(fps * interval_seconds)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        if frame_number % interval == 0 or saved_frame_count == 0:
+            frame_path = f"frame_{saved_frame_count}.jpg"
+            cv2.imwrite(frame_path, frame)
+            print(f"Saved {frame_path}")
+            saved_frame_count += 1
+
+        frame_number += 1
+    cap.release()
+    cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     
