@@ -1,4 +1,4 @@
-export const SERVER_IP = '10.0.0.2'
+export const SERVER_IP = '10.200.66.207'
 
 
 export function getSmartPhoneFps(){

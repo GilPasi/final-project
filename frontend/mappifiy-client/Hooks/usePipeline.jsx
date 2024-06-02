@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 
 export const SUCCESS_MSG = 'Video uploaded successfully!'
-export const FAILURE_MSG = ''
+export const FAILURE_MSG = 'Upload failed.'
 
 const extractCsrfToken = (response) => {
     const cookies = response.headers.get('set-cookie');
@@ -77,10 +77,10 @@ export const usePipeline = () => {
         console.log(FAILURE_MSG);
       }
 
-      setUploadStatus('Upload successful!');
+      setUploadStatus(SUCCESS_MSG);
       console.log('Upload response:', response.data);
     } catch (error) {
-      setUploadStatus('Upload failed.');
+      setUploadStatus(FAILURE_MSG);
       console.error('Error uploading video:', error);
     }
   };
