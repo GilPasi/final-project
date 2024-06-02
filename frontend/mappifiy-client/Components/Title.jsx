@@ -1,13 +1,13 @@
 import { StyleSheet, View, Text } from 'react-native';
 import theme from './StaticStyle';
 
-export default function Title({ text, size }) {
-
+export default function Title({ text, size, isError }) {
+  size = (typeof size === 'string' || size instanceof String) ? theme.fontSizes[size] : size
   const styles = StyleSheet.create({
     container: {},
     title: {
       fontFamily: theme.fonts.primary,
-      color: 'rgba(98,114,84,1)',
+      color: isError ? theme.colors.error : theme.colors.primary,
       fontSize: size ? size : 55,
       textAlign: 'center',
     },

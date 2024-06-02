@@ -4,6 +4,7 @@ const theme = {
       dominant: '#627254',
       secondary: '#DDDDDD',
       background:'#EEEEEE',
+      error: '#800000',
     },
     fonts: {
         primary: "Alef-Bold"

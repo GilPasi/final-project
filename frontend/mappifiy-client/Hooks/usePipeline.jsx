@@ -10,7 +10,7 @@ const extractCsrfToken = (response) => {
       const token = cookies[0].split(';').find(cookie => cookie.trim().startsWith('csrftoken=')).split('=')[1];
       return token;
     } else {
-      console.error("No CSRF token found in set-cookie header");
+      console.error("No CSRF token found in set-cookie header.");
       return null;
     }
   };
@@ -18,7 +18,7 @@ const extractCsrfToken = (response) => {
 export const usePipeline = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
-  const csrfToken = useRef()
+  const csrfToken = useRef(null)
 
   useEffect(() => {
     getCsrfToken();
@@ -31,10 +31,11 @@ export const usePipeline = () => {
     }
     
     try {
-      const response = await api.get('/get-csrf-token'); // Replace with your endpoint
+      const response = await api.get('/get-csrf-token');
       csrfToken.current = extractCsrfToken(response)
     } catch (error) {
-      console.error('Error fetching CSRF token:', error);
+      console.error("Fetching CSRF token failed. Hint: Make sure that SERVER_IP in",
+      "frontend/mappifiy-client/utilities/utils.js is configured for your actual IP address");
     }
     return csrfToken.current
   };
@@ -85,5 +86,5 @@ export const usePipeline = () => {
     }
   };
 
-  return {uploadProgress, uploadStatus, uploadVideo, getCsrfToken };
+  return {uploadProgress, uploadStatus, uploadVideo, csrfToken };
 };
