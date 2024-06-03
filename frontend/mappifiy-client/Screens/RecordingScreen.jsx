@@ -49,7 +49,7 @@ export default function RecordingScreen() {
     );
   }
 
-  if (!csrfToken.current){
+  if (!csrfToken){
     return (
     <View style={styles.container} >
       <Title text={`A connection\n error has occurred.`} isError={true} size='big'/>
@@ -63,7 +63,7 @@ export default function RecordingScreen() {
 
   if (cam.videoUri) {
     return (<View tyle={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
-      {uploadStatus == FAILURE_MSG && <ThemedButton
+      {uploadStatus == SUCCESS_MSG && <ThemedButton
         title="Send Video"
         onPress={() => uploadVideo(cam.videoUri, gyro.data)}
       />}

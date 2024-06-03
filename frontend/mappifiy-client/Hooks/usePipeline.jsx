@@ -21,27 +21,33 @@ export const usePipeline = () => {
   const csrfToken = useRef(null)
 
   useEffect(() => {
+    foo()
     getCsrfToken();
   }, []);
+  const foo = ()=>a=5
+  useEffect(() => {
+    console.log("AAA")
+  }, [foo]);
 
 
   const getCsrfToken = async () => {
+    
     if(csrfToken.current){
       return csrfToken.current
     }
-    
     try {
       const response = await api.get('/get-csrf-token');
       csrfToken.current = extractCsrfToken(response)
     } catch (error) {
-      console.error("Fetching CSRF token failed. Hint: Make sure that SERVER_IP in",
-      "frontend/mappifiy-client/utilities/utils.js is configured for your actual IP address");
+      console.error("Fetching CSRF token failed. Possible solutions: ",
+      "\n1. Make sure that SERVER_IP in frontend/mappifiy-client/utilities/utils.js",
+      " is configured for your actual IP address",
+      "\n2. Make sure your IP address is indeed one of the ALLOWED_HOSTS in backend/mappify-server/MappifyDjango/settings.py");
     }
     return csrfToken.current
   };
 
   const uploadVideo = async (uriObj, gyroscopeData) => {
-
     const uri = uriObj.uri;
     const fileType = uri.split('.').pop();
     formData = new FormData()
