@@ -1,12 +1,13 @@
 import numpy as np
 import logging
 import cv2
-
+import io
 from PIL import Image
-from utils import list_directory_contents, prefix_from_absolute_path
-from damaged_snapshot_exception import DamagedSnapshotException
-from utils import get_default_input_path, slice_size,\
+from algorithm.utils import list_directory_contents,\
+prefix_from_absolute_path,get_default_input_path, slice_size,\
 MINIMUM_LIGHT_PIXELS_IN_LINE, SNAPSHOT_SIZE
+from algorithm.damaged_snapshot_exception import DamagedSnapshotException
+from tempfile import NamedTemporaryFile
 
 
 def crop_image_to_square(image_path: str, output_path:str):
@@ -78,31 +79,48 @@ def crop_prediction(prediction: np.ndarray):
     return cropped_matrices
 
  # TODO: test this 
-def extract_snapshots(self, video, interval_seconds:int = 0 ):
-    video_data = video.read()
-    np_arr = np.frombuffer(video_data, np.uint8)
-    cap = cv2.VideoCapture(cv2.imdecode(np_arr, cv2.IMREAD_COLOR))
 
-    if not cap.isOpened():
-        print("Error opening video stream or file")
+def take_video_snapshots(uploaded_file, snapshot_interval=5):
+    """
+    Takes snapshots from an InMemoryUploadedFile video instance.
 
-    frame_number = 0
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    interval = int(fps * interval_seconds)
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
+    Args:
+    uploaded_file (InMemoryUploadedFile): The uploaded video file instance.
+    snapshot_count (int): The number of snapshots to take.
 
-        if frame_number % interval == 0 or saved_frame_count == 0:
-            frame_path = f"frame_{saved_frame_count}.jpg"
-            cv2.imwrite(frame_path, frame)
-            print(f"Saved {frame_path}")
-            saved_frame_count += 1
+    Returns:
+    List of PIL.Image objects representing the snapshots.
+    """
+    with NamedTemporaryFile(delete=True, suffix='.mp4') as temp_file:
+        temp_file.write(uploaded_file.read())
+        temp_file.flush()
 
-        frame_number += 1
-    cap.release()
-    cv2.destroyAllWindows()
+        video = cv2.VideoCapture(temp_file.name)
+
+        if not video.isOpened():
+            raise ValueError("Could not open video file.")
+
+        total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = int(video.get(cv2.CAP_PROP_FPS))
+        step_size = fps * snapshot_interval 
+        snapshot_count = max(total_frames // step_size, 1) # At least one snapshot
+
+        snapshots = []
+        print("snapshot_count",total_frames)
+        for i in range(0, snapshot_count):
+            frame_number = i * step_size
+            print("frame number", frame_number)
+            video.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+            ret, frame = video.read()
+            if ret:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame_pil = Image.fromarray(frame_rgb)
+                snapshots.append(frame_pil)
+            else:
+                break
+
+        video.release()
+    return snapshots
 
 
 if __name__ == "__main__":

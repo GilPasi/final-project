@@ -21,14 +21,8 @@ export const usePipeline = () => {
   const csrfToken = useRef(null)
 
   useEffect(() => {
-    foo()
     getCsrfToken();
   }, []);
-  const foo = ()=>a=5
-  useEffect(() => {
-    console.log("AAA")
-  }, [foo]);
-
 
   const getCsrfToken = async () => {
     

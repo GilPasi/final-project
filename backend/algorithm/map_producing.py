@@ -6,11 +6,12 @@ import subprocess
 import matplotlib.pyplot as plt
 import threading
 import queue
+import io
 
 from PIL import Image
-from width_estimating import multiple_normalize_object_width
-from utils import get_algorithm_dir,ipc_file_path, SNAPSHOT_SIZE
-from image_utils import glue_map, crop_prediction
+from algorithm.width_estimating import multiple_normalize_object_width
+from algorithm.utils import get_algorithm_dir,ipc_file_path, SNAPSHOT_SIZE, get_default_input_path
+from algorithm.image_utils import glue_map, crop_prediction, take_video_snapshots
 
 def get_predictions():
     segmentor_script_path = os.path.join(get_algorithm_dir(), "segmentor.py")
@@ -85,13 +86,24 @@ def _present_results(depth_sample = None, segmentation_sample = None,
 
 def _present_image(array_to_plot: np.ndarray, array_name:str = "Image"):
     plt.imshow(array_to_plot)
-    plt.axis('off')  # Turn off the axis
-    plt.title(array_name)  # Add a title to the image
+    plt.axis('off')
+    plt.title(array_name)
     plt.show()
     
 def _get_orientations():
     # Mockaup
-    return ['vertical','vertical','vertical','vertical'] 
+    path = get_default_input_path()
+    number_of_images = _count_items_in_path(path)
+    orientatios = ['vertical'] * number_of_images
+
+    return orientatios
+
+def _count_items_in_path(path):
+    try:
+        items = os.listdir(path)
+        return len(items)
+    except Exception:
+        return 0
 
 def combine_analysis(dep_prediction, seg_prediction):
     return dep_prediction * seg_prediction
@@ -102,7 +114,11 @@ def process_predictions(seg_prediction, dep_prediction):
     normal_results = multiple_normalize_object_width(cropped_preds)
     return normal_results
 
-def produce_map(debug = False):
+def produce_map(video, debug = False):
+    snapshots = take_video_snapshots(video)
+    for idx, snapshot in enumerate(snapshots):
+        snapshot.save(os.path.join(get_default_input_path(), f"{idx}.jpg")) 
+        
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
@@ -115,8 +131,7 @@ def produce_map(debug = False):
         input("Press enter\n")
 
     return map
-if __name__ == "__main__":
-    produce_map(True)
+
 
 
     

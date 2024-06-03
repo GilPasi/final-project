@@ -55,7 +55,7 @@ def prefix_from_absolute_path (absolute_path: str, prefix: str):
 
 def slice_size():
     # This is a method since calculating the slice size
-    # might change dramtiacally and even dinamically
+    # might change dramtically and even dynamically
     DIVIDE_FACTOR = 4 
     return int(SNAPSHOT_SIZE[0] / DIVIDE_FACTOR)
 

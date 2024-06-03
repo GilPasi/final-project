@@ -2,13 +2,21 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.middleware.csrf import get_token
 from django.http import HttpResponse
-import os 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import VideoUploadSerializer
-import json 
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
+import json 
+import sys
+import os 
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, '..','..',))
+
+sys.path.append(parent_dir)
+from algorithm.map_producing import produce_map
 
 class UploadVideoAPIView(APIView):
     def get(self, request, *args, **kwargs):
@@ -77,14 +85,19 @@ class UploadVideoAPIView(APIView):
         serializer = VideoUploadSerializer(data=request.data)
         if serializer.is_valid():
             video = serializer.validated_data['video']
-            input_dir = os.path.join('media', 'videos')
-            os.makedirs(input_dir, exist_ok=True)
-            video_path = os.path.join(input_dir, video.name)
+            produce_map(video)
 
-            with open(video_path, 'wb+') as destination:
-                for chunk in video.chunks():
-                    destination.write(chunk)
+
+            # input_dir = os.path.join('media', 'videos')
+            # os.makedirs(input_dir, exist_ok=True)
+            # video_path = os.path.join(input_dir, video.name)
+
+            # with open(video_path, 'wb+') as destination:
+            #     for chunk in video.chunks():
+            #         destination.write(chunk)
             
             return Response({'message': 'Video uploaded successfully!'}, status=status.HTTP_201_CREATED)
         print("Serializer error: ",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
