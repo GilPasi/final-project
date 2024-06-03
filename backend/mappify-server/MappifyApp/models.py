@@ -14,4 +14,8 @@ class Video(models.Model):
     def __str__(self):
         return self.title
 
+class Map(models.Model):
+    place = models.CharField(max_length=255)
+    date_of_upload = models.DateField()
+    unique_photo_name = models.CharField(max_length=255, unique=True)
 
