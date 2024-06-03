@@ -22,11 +22,11 @@ def get_average_depth(stripe: np.ndarray):
     return sum(stripe[start:end+1]) / (end - start + 1)
 
 
-def calculate_real_life_width(pixels, focal_length, sensor_width):
+def calculate_real_life_width(pixels: np.ndarray, focal_length: float, sensor_width: float):
     non_zero_indices = np.where(pixels > 0)[0]
 
     if non_zero_indices.size == 0:
-        return 0, 0
+        return 0
 
     depths = pixels[non_zero_indices]
     MEAN_POWER = 1.75
@@ -34,9 +34,8 @@ def calculate_real_life_width(pixels, focal_length, sensor_width):
     fov = 2 * np.arctan(sensor_width / (2 * focal_length))
     pixel_width = non_zero_indices[-1] - non_zero_indices[0] + 1
     width_at_avg_depth = 2 * avg_powered_depth * np.tan(fov / 2)
-    
     real_life_width = width_at_avg_depth * (pixel_width / len(pixels))
-        
+
     return real_life_width
 
 def multiple_normalize_object_width(images: list):
@@ -59,6 +58,11 @@ def normalize_object_width(image: np.ndarray):
     for idx, stripe in enumerate(image): 
         real_width_current_stripe = calculate_real_life_width(
             stripe, FOCAL_WIDTH, SENSOR_WIDTH)
+        # Avoid blank lines bugs
+        if real_width_current_stripe == 0: 
+            continue 
+
+        real_width_base_stripe = max(real_width_base_stripe, 1 ) # Avoid divison by zero 
         real_ratio = real_width_current_stripe / (real_width_base_stripe * SQUEEZE_FACTOR)
         real_ratio **= 2
         new_current_stripe_width = int(pixel_width_base_stripe * real_ratio)
@@ -71,7 +75,7 @@ def normalize_object_width(image: np.ndarray):
 def normalize_stripe(stripe: np.ndarray, new_width: int):
     stripe_middle = calculate_middle_point(stripe)
     new_width = min(new_width, stripe.shape[0]) // 2 # Avoid Out of bound
-    LIGHT_VAL = 5
+    LIGHT_VAL = 255
     new_stripe = np.zeros(len(stripe))
 
     for i in range(new_width):

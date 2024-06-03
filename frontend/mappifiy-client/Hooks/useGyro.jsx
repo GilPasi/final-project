@@ -25,7 +25,7 @@ export default function useGyro(isRecording) {
     if (!isRecording && subscription) {
       subscription.remove();
       setSubscription(null);
-      console.log(data.slice(0, 10), "\n...")
+      console.log("Gyroscope data collected: ", data.slice(0, 2), "\n...")
     }
   };
   

@@ -12,6 +12,7 @@ git clone git@github.com:isl-org/ZoeDepth.git lib
 conda create -f setup/seg_env.yml
 conda create -f setup/zoe_env.yml
 conda create -f setup/dj_env.yml 
+Set SERVER_IP in frontend/mappifiy-client/utilities/utils.js to your actuall ip address
 
 To run client daemon, run:
 cd frontend/mappifiy-client

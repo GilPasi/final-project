@@ -1,6 +1,9 @@
-export const SERVER_IP = '10.0.0.2'
 
+const SERVER_IP = '10.0.0.2'
 
+export function getServerIp(){
+    return SERVER_IP
+}
 export function getSmartPhoneFps(){
     // May be replaced in the future if 
     // quering the device is possible
@@ -11,5 +14,5 @@ export function getSmartPhoneFps(){
 
 export function getBaseUrl(){
     // Should be replaced wit the actual domain name eventually
-    return `http://${SERVER_IP}:8000`
+    return `http://${getServerIp()}:8000`
 }

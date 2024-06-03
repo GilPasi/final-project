@@ -25,6 +25,10 @@ def get_default_input_path():
     return os.path.join(
         get_mappify_root_dir(), "backend","algorithm","input") 
 
+def get_default_output_path():
+    return os.path.join(
+        get_mappify_root_dir(), "backend","mappify-server","media", "maps") 
+
 def get_algorithm_dir():
     return os.path.join(get_mappify_root_dir(), "backend", "algorithm")
 
@@ -55,7 +59,6 @@ def prefix_from_absolute_path (absolute_path: str, prefix: str):
 
 def slice_size():
     # This is a method since calculating the slice size
-    # might change dramtiacally and even dinamically
+    # might change dramtically and even dynamically
     DIVIDE_FACTOR = 4 
     return int(SNAPSHOT_SIZE[0] / DIVIDE_FACTOR)
-
