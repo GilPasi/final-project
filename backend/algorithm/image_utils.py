@@ -1,7 +1,9 @@
 import numpy as np
 import logging
 import cv2
-import io
+import os
+import shutil
+
 from PIL import Image
 from algorithm.utils import list_directory_contents,\
 prefix_from_absolute_path,get_default_input_path, slice_size,\
@@ -35,8 +37,10 @@ def find_first_positive_row(matrix, threshhold):
         raise DamagedSnapshotException(f"The given matrix has too little light pixels" )
 
 def glue_map(matrices, orientations):
+    print(len(matrices))
     if len(matrices) != len(orientations):
-        raise ValueError("The number of matrices and orientations must be the same.")
+        raise ValueError(f"The number of matrices ({len(matrices)}) ",
+                         f"and orientations count ({len(orientations)}) must be the same.")
     
     result = matrices[0]
     for i in range(1, len(matrices)):
@@ -61,20 +65,23 @@ def smart_crop(matrix_to_crop: np.array):
 
 def crop_prediction(prediction: np.ndarray):
     cropped_matrices = []
+
     all_images_paths = list_directory_contents(
     get_default_input_path(), allowed_extentsions=[".png", ".jpeg", ".jpg"])
 
     assert len(all_images_paths) == len(prediction), \
     f"There should be the same quantity of proccessed"\
       f"images {len(all_images_paths)} as crude ones {len(prediction)}"
+    
     for image_path, prediction in zip(all_images_paths, prediction):
-        try:     
+        try:
             cropped_matrix = np.copy(smart_crop(prediction))
             cropped_matrices.append(cropped_matrix)
         except DamagedSnapshotException:
             logging.basicConfig(filename='image_processing.log', 
                     level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
             logging.error(f"Image {image_path} was damaged, not enough light pixels")
+            raise DamagedSnapshotException("Error: the given video is has too some problematic shots and, re-take the video")
     
     return cropped_matrices
 
@@ -117,6 +124,19 @@ def take_video_snapshots(uploaded_file, snapshot_interval=1):
 
         video.release()
     return snapshots
+
+def processing_cleanup(directory):
+    try:
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+                print(f"Removed file: {file_path}")
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+                print(f"Removed directory and its contents: {file_path}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 if __name__ == "__main__":

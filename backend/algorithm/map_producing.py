@@ -6,12 +6,21 @@ import subprocess
 import matplotlib.pyplot as plt
 import threading
 import queue
-import io
 
 from PIL import Image
 from algorithm.width_estimating import multiple_normalize_object_width
-from algorithm.utils import get_algorithm_dir,ipc_file_path, SNAPSHOT_SIZE, get_default_input_path
-from algorithm.image_utils import glue_map, crop_prediction, take_video_snapshots
+from algorithm.utils import \
+    get_algorithm_dir,\
+    ipc_file_path,\
+    SNAPSHOT_SIZE,\
+    get_default_input_path,\
+    get_default_output_path
+
+from algorithm.image_utils import \
+    glue_map,\
+    crop_prediction,\
+    take_video_snapshots,\
+    processing_cleanup \
 
 def get_predictions():
     segmentor_script_path = os.path.join(get_algorithm_dir(), "segmentor.py")
@@ -94,9 +103,9 @@ def _get_orientations():
     # Mockaup
     path = get_default_input_path()
     number_of_images = _count_items_in_path(path)
-    orientatios = ['vertical'] * number_of_images
+    orientations = ['vertical'] * number_of_images
 
-    return orientatios
+    return orientations
 
 def _count_items_in_path(path):
     try:
@@ -112,7 +121,13 @@ def process_predictions(seg_prediction, dep_prediction):
     combined_prediction = combine_analysis(seg_prediction, dep_prediction)
     cropped_preds = crop_prediction(combined_prediction)    
     normal_results = multiple_normalize_object_width(cropped_preds)
+
     return normal_results
+
+def save_map(map):
+    map_image = Image.fromarray(map)
+    map_image = map_image.convert("RGB")
+    map_image.save(get_default_output_path())
 
 def produce_map(video, debug = False):
     snapshots = take_video_snapshots(video)
@@ -122,16 +137,11 @@ def produce_map(video, debug = False):
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
-    
     processed_output = process_predictions(seg_prediction, dep_prediction)
+
     map = glue_map(processed_output, _get_orientations())
-
-    map_image = Image.fromarray(map)
-    map_image = map_image.convert("RGB")
-    map_image.save("your_file.jpg")
-
-
-
+    save_map(map)
+    processing_cleanup(get_default_input_path())
 
     if debug:
         _present_image(map)
