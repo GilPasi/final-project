@@ -78,9 +78,7 @@ def crop_prediction(prediction: np.ndarray):
     
     return cropped_matrices
 
- # TODO: test this 
-
-def take_video_snapshots(uploaded_file, snapshot_interval=5):
+def take_video_snapshots(uploaded_file, snapshot_interval=1):
     """
     Takes snapshots from an InMemoryUploadedFile video instance.
 

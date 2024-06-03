@@ -118,13 +118,20 @@ def produce_map(video, debug = False):
     snapshots = take_video_snapshots(video)
     for idx, snapshot in enumerate(snapshots):
         snapshot.save(os.path.join(get_default_input_path(), f"{idx}.jpg")) 
-        
+
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
     
     processed_output = process_predictions(seg_prediction, dep_prediction)
     map = glue_map(processed_output, _get_orientations())
+
+    map_image = Image.fromarray(map)
+    map_image = map_image.convert("RGB")
+    map_image.save("your_file.jpg")
+
+
+
 
     if debug:
         _present_image(map)
