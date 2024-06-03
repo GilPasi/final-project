@@ -106,10 +106,8 @@ def take_video_snapshots(uploaded_file, snapshot_interval=5):
         snapshot_count = max(total_frames // step_size, 1) # At least one snapshot
 
         snapshots = []
-        print("snapshot_count",total_frames)
         for i in range(0, snapshot_count):
             frame_number = i * step_size
-            print("frame number", frame_number)
             video.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
             ret, frame = video.read()
             if ret:

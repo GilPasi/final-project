@@ -16,6 +16,12 @@ from utils import SNAPSHOT_SIZE
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
+import logging
+
+
+
+logging.basicConfig(filename='image_processing.log', 
+    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class Segmentor(): 
     _segmention_model_instance = None 
@@ -51,7 +57,12 @@ class Segmentor():
         sample_data = self._load_images()
         prediction = self._model.predict(sample_data)
         prediction = np.where(prediction > self.threshhold, 1, 0)
-        return np.squeeze(prediction)
+        prediction = np.squeeze(prediction)
+        ARRAY_OF_IMAGES_DIMENSION = 3 
+        if len(prediction.shape) != ARRAY_OF_IMAGES_DIMENSION:
+            prediction = np.expand_dims(prediction, axis=0)
+
+        return prediction
     
     def _load_images(self, all_images_paths: list = []):
         if all_images_paths == []:
