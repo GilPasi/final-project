@@ -61,9 +61,9 @@ export default function RecordingScreen() {
     )
   }
 
-  if (cam.videoUri) {
-    return (<View tyle={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
-      {uploadStatus == SUCCESS_MSG && <ThemedButton
+  if (cam.videoUri ) {
+    return (<View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
+      {uploadStatus != SUCCESS_MSG && <ThemedButton
         title="Send Video"
         onPress={() => uploadVideo(cam.videoUri, gyro.data)}
       />}
