@@ -13,6 +13,13 @@ conda create -f setup/seg_env.yml
 conda create -f setup/zoe_env.yml
 conda create -f setup/dj_env.yml 
 Set SERVER_IP in frontend/mappifiy-client/utilities/utils.js to your actuall ip address
+Install MySQL server from https://dev.mysql.com/downloads/mysql/ or use brew install mysql
+Download the .env file from 
+    https://1drv.ms/f/c/947b5dc71d5657a7/EpbYOW9zqjlDvg-_gvyQKDQB1w1rnu9njMz1TAdzIEj7hQ?e=zvrs7F 
+    and replace <your SQL password> with your actual password. 
+    Locate it in backend/mappify-server/MappifyDjango/.env
+
+
 
 To run client daemon, run:
 cd frontend/mappifiy-client
