@@ -8,7 +8,7 @@ export function getSmartPhoneFps(){
     // May be replaced in the future if 
     // quering the device is possible
     STANDARD_SMARTPHONE_FPS = 30
-    return 30 
+    return STANDARD_SMARTPHONE_FPS
 }
 
 

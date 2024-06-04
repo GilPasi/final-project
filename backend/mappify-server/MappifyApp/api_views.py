@@ -1,12 +1,11 @@
-from rest_framework import status
-from rest_framework.response import Response
 from django.middleware.csrf import get_token
-from django.http import HttpResponse
+from django.http import HttpResponse,FileResponse, Http404
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import VideoUploadSerializer
-from django.core.files.uploadedfile import InMemoryUploadedFile
 
 import json 
 import sys
@@ -70,8 +69,7 @@ class UploadVideoAPIView(APIView):
       };"""
         
         return HttpResponse(query_post_example, content_type="text/plain")
-
-
+    
     def post(self, request, *args, **kwargs):
         if self.request.path.endswith('upload/'):
             return self.upload_map_data(request)
@@ -99,5 +97,12 @@ class UploadVideoAPIView(APIView):
             return Response({'message': 'Video uploaded successfully!'}, status=status.HTTP_201_CREATED)
         print("Serializer error: ",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+def get_image(request, image_name):
+    image_path = os.path.join(settings.MEDIA_ROOT, 'maps', image_name)
+    if os.path.exists(image_path):
+        return FileResponse(open(image_path, 'rb'), content_type='image/jpeg')
+    else:
+        raise Http404("Image not found")
+
     

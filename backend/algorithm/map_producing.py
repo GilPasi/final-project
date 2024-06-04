@@ -128,7 +128,8 @@ def process_predictions(seg_prediction, dep_prediction):
 def save_map(map):
     map_image = Image.fromarray(map)
     map_image = map_image.convert("RGB")
-    map_image.save(get_default_output_path())
+    save_path = os.path.join(get_default_output_path(), "1.jpg")
+    map_image.save(save_path)
 
 def produce_map(video, debug = False):
     processing_cleanup(get_default_input_path())
