@@ -60,10 +60,15 @@ class UploadVideoAPIView(APIView):
 class ImageView(APIView):
 
     def get(self, request, image_name, format=None):
+        return self.get_map(image_name)
+
+    def get_map(self, image_name):
         image_path = os.path.join(settings.MEDIA_ROOT, 'maps', image_name)
         if os.path.exists(image_path):
             return FileResponse(open(image_path, 'rb'), content_type='image/jpeg')
         else:
             raise Http404("Image not found")
+        
+    
       
     
