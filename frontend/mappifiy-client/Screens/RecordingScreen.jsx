@@ -68,7 +68,9 @@ export default function RecordingScreen() {
         onPress={() => uploadVideo(cam.videoUri, gyro.data)}
       />}
       <Title text={uploadStatus} size={40} />
-      <LoadingBar progress={uploadProgress} />
+      <View style={{...styles.loadingContainer}}>
+        <LoadingBar progress={uploadProgress} />
+      </View>
     </View>)
   }
 
@@ -90,6 +92,9 @@ export default function RecordingScreen() {
     container: {
       flex: 1,
       justifyContent: 'center',
+    },
+    loadingContainer: {
+      width: "75%",
     },
     recButton: {
       fontSize: 100,

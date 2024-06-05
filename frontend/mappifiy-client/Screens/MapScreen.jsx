@@ -44,13 +44,13 @@ export default function App() {
                   text={`${location}${'\t'}${'\t'}${'\t'} 	➯`}
                   value={location}
                   onPress={mapName => {
-                    console.log(`${getBaseUrl()}/api/media/maps/${mapName}.png`)
+                    console.log(`${getBaseUrl()}/api/media/maps/${mapName}.jpg`)
                     setMapName(mapName)}}
             />)
         })}
 
     <Image 
-        source= {`${getBaseUrl()}/api/media/maps/${mapName}.png`}
+        source= {`${getBaseUrl()}/api/media/maps/${mapName}.jpg`}
         style={styles.image}
        />
     </View>
