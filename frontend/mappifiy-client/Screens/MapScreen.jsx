@@ -1,29 +1,46 @@
 
 import { Image } from 'expo-image';
-import { StyleSheet, View,TextInput } from 'react-native';
+import { StyleSheet, View, TextInput, Text } from 'react-native';
 import {getBaseUrl} from '../utilities/utils'
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import ThemedButton from '../Components/ThemedButton';
+import Option from '../Components/Option'
+import {api} from '../services/api'
+
+const undressFullPath = path => path.split("/").pop().split(".")[0]
 
 export default function App() {
   const [mapName, setMapName] = useState('')
-  
+  const [allMaps, setAllMaps] = useState([])
+
+  useEffect(()=>{
+    api.get('media/maps/all/')
+    .then(response => {
+      console.log(response.data.files)
+      setAllMaps(response.data.files)
+
+    })
+    .catch(err => console.log(`ERROR: A problem has 
+    occured while trying to fetch all images names ${err}`))
+  },[])
 
   
-
-  
-
   return (
     <View style={styles.container}>
       <View style={styles.searchBar}>
         <TextInput
           style={styles.input}
-          placeholder="Type here..."
+          placeholder="Type location..."
           value={mapName}
-          onChangeText={text => setMapName(text)}
+          onChangeText={mapName => setMapName(mapName)}
         /> 
         <ThemedButton title="Find" size="small"/>
       </View>
+      {allMaps.map(
+        location =>{
+          location = undressFullPath(location)
+          return(<Option key={location} title={`${location}${'\t'}${'\t'}${'\t'} 	➯`}/>)
+        })}
 
     <Image 
         source= {`${getBaseUrl()}/api/media/maps/${mapName}.png`}

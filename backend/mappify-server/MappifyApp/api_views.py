@@ -1,5 +1,5 @@
 from django.middleware.csrf import get_token
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -60,7 +60,15 @@ class UploadVideoAPIView(APIView):
 class ImageView(APIView):
 
     def get(self, request, image_name, format=None):
-        return self.get_map(image_name)
+        print("1")
+        if request.path.endswith('all/'):
+            print("2")
+            return self.get_all_maps_names()
+        else:
+            print("3")
+            return self.get_map(image_name)
+
+
 
     def get_map(self, image_name):
         image_path = os.path.join(settings.MEDIA_ROOT, 'maps', image_name)
@@ -68,6 +76,21 @@ class ImageView(APIView):
             return FileResponse(open(image_path, 'rb'), content_type='image/jpeg')
         else:
             raise Http404("Image not found")
+    
+    def get_all_maps_names(self):
+        media_root = settings.MEDIA_ROOT
+        maps_dir = os.path.join(media_root, 'maps')
+        
+        if not os.path.exists(maps_dir):
+            return JsonResponse({'error': 'Maps directory does not exist'}, status=404)
+        
+        file_paths = []
+        for root, dirs, files in os.walk(maps_dir):
+            for file in files:
+                file_path = os.path.relpath(os.path.join(root, file), media_root)
+                file_paths.append(file_path)
+        
+        return JsonResponse({'files': file_paths})
         
     
       
