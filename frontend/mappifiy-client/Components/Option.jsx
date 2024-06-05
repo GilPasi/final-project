@@ -2,7 +2,7 @@ import { StyleSheet, Text } from "react-native";
 import {TouchableOpacity} from 'react-native'
 import theme from "./StaticStyle"
 
-export default function Option({title, buttonStyle, textStyle, onPress, size}) {
+export default function Option({text, value, buttonStyle, textStyle, onPress, size}) {
   
   const getSizes = () => {
     let _fontSize = 0
@@ -24,14 +24,21 @@ export default function Option({title, buttonStyle, textStyle, onPress, size}) {
   
   const {_fontSize, _width} = getSizes()
 
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress(value);
+    }
+  };
+
   return (
     <TouchableOpacity 
           style={ {...styles.container, width:_width}}
-          onPress = {onPress} 
+          onPress = {handlePress} 
     >
 
       <Text style={{...styles.text, fontSize: _fontSize}}> 
-        {title}
+        {text}
       </Text>
     </TouchableOpacity>
 
@@ -44,7 +51,6 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
     borderWidth: 2,
     margin: 10,
-    // borderRadius: 20
     borderBottomLeftRadius: 5,
     borderBottomRightRadius: 5,
     borderStyle: "solid",

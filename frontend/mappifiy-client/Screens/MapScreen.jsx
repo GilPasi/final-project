@@ -27,7 +27,7 @@ export default function App() {
   
   return (
     <View style={styles.container}>
-      <View style={styles.searchBar}>
+      {/* <View style={styles.searchBar}>
         <TextInput
           style={styles.input}
           placeholder="Type location..."
@@ -35,11 +35,18 @@ export default function App() {
           onChangeText={mapName => setMapName(mapName)}
         /> 
         <ThemedButton title="Find" size="small"/>
-      </View>
+      </View> */}
       {allMaps.map(
         location =>{
           location = undressFullPath(location)
-          return(<Option key={location} title={`${location}${'\t'}${'\t'}${'\t'} 	➯`}/>)
+          return(<Option 
+                  key={location}
+                  text={`${location}${'\t'}${'\t'}${'\t'} 	➯`}
+                  value={location}
+                  onPress={mapName => {
+                    console.log(`${getBaseUrl()}/api/media/maps/${mapName}.png`)
+                    setMapName(mapName)}}
+            />)
         })}
 
     <Image 
@@ -70,7 +77,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   searchBar:{
-    // backgroundColor:"red",
     width:"100%",
     alignItems: 'center',
   },
