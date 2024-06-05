@@ -1,12 +1,10 @@
-from rest_framework import status
-from rest_framework.response import Response
 from django.middleware.csrf import get_token
-from django.http import HttpResponse
+from django.http import FileResponse, Http404, JsonResponse
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import VideoUploadSerializer
-from django.core.files.uploadedfile import InMemoryUploadedFile
 
 import json 
 import sys
@@ -22,8 +20,6 @@ class UploadVideoAPIView(APIView):
     def get(self, request, *args, **kwargs):
         if self.request.path.endswith('get-csrf-token/'):
             return self.get_csrf_token(request)
-        elif self.request.path.endswith('/'):
-            return self.example_request(request)
         else:
             return Response({'error': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -31,47 +27,7 @@ class UploadVideoAPIView(APIView):
         csrf_token = get_token(request)
         print(f"CSRF Token: {csrf_token}")
         return Response({'csrfToken': csrf_token})
-
-    def example_request(self, request):
-        query_post_example = """
-        let formData = new FormData();
-        formData.append('video', {
-          uri,
-          name: `video.${fileType}`,
-          type: `video/${fileType}`
-        });
-
-         url = `${getBaseUrl()}/api/upload/`
-        const response = await fetch(url, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-CSRFToken': csrfToken
-          },
-         })
-        ===================================
-        If case of 403 error consider getting
-        a csrf cookie prior to the request
-        in the path /api/get_csrf_token
-        use it like so:
-        ===================================
-
-
-          const fetchCsrfToken = async () => {
-        try {
-          url = `${getBaseUrl()}/api/get-csrf-token/`
-          const response = await fetch(url);
-          const token = extractCsrfToken(response);
-          csrfRef.current = token
-          console.log("CSRF Token:", token);
-        } catch (err) {
-          console.error("Something went wrong while querying CSRF token:", err);
-        }
-      };"""
-        
-        return HttpResponse(query_post_example, content_type="text/plain")
-
-
+    
     def post(self, request, *args, **kwargs):
         if self.request.path.endswith('upload/'):
             return self.upload_map_data(request)
@@ -100,4 +56,42 @@ class UploadVideoAPIView(APIView):
         print("Serializer error: ",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+class ImageView(APIView):
+
+    def get(self, request, image_name, format=None):
+        print("1")
+        if request.path.endswith('all/'):
+            print("2")
+            return self.get_all_maps_names()
+        else:
+            print("3")
+            return self.get_map(image_name)
+
+
+
+    def get_map(self, image_name):
+        image_path = os.path.join(settings.MEDIA_ROOT, 'maps', image_name)
+        if os.path.exists(image_path):
+            return FileResponse(open(image_path, 'rb'), content_type='image/jpeg')
+        else:
+            raise Http404("Image not found")
+    
+    def get_all_maps_names(self):
+        media_root = settings.MEDIA_ROOT
+        maps_dir = os.path.join(media_root, 'maps')
+        
+        if not os.path.exists(maps_dir):
+            return JsonResponse({'error': 'Maps directory does not exist'}, status=404)
+        
+        file_paths = []
+        for root, dirs, files in os.walk(maps_dir):
+            for file in files:
+                file_path = os.path.relpath(os.path.join(root, file), media_root)
+                file_paths.append(file_path)
+        
+        return JsonResponse({'files': file_paths})
+        
+    
+      
     

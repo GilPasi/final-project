@@ -85,7 +85,7 @@ def crop_prediction(prediction: np.ndarray):
     
     return cropped_matrices
 
-def take_video_snapshots(uploaded_file, snapshot_interval=1):
+def take_video_snapshots(uploaded_file, snapshot_interval:int=1):
     """
     Takes snapshots from an InMemoryUploadedFile video instance.
 
@@ -126,6 +126,8 @@ def take_video_snapshots(uploaded_file, snapshot_interval=1):
     return snapshots
 
 def processing_cleanup(directory):
+    if not os.path.exists(directory): 
+        os.mkdir(directory)
     try:
         for filename in os.listdir(directory):
             file_path = os.path.join(directory, filename)
@@ -137,6 +139,10 @@ def processing_cleanup(directory):
                 print(f"Removed directory and its contents: {file_path}")
     except Exception as e:
         print(f"Error: {e}")
+
+def save_pictures(snapshots:list, input_dir:str):
+    for idx, snapshot in enumerate(snapshots):
+        snapshot.save(os.path.join(input_dir, f"{idx}.jpg")) 
 
 
 if __name__ == "__main__":

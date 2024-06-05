@@ -2,7 +2,7 @@ import { StyleSheet, Text } from "react-native";
 import {TouchableOpacity} from 'react-native'
 import theme from "./StaticStyle"
 
-function ThemedButton({title, buttonStyle, textStyle, onPress, size}) {
+export default function Option({text, value, buttonStyle, textStyle, onPress, size}) {
   
   const getSizes = () => {
     let _fontSize = 0
@@ -11,12 +11,12 @@ function ThemedButton({title, buttonStyle, textStyle, onPress, size}) {
     switch (size){
       case 'small':
         _width = 100
-        _fontSize = 25  
+        _fontSize = 10  
         break
 
       default: 
-        _width = 200
-        _fontSize = 35
+        _width = "80%"
+        _fontSize = 20
     }
 
     return {_fontSize, _width}
@@ -24,32 +24,41 @@ function ThemedButton({title, buttonStyle, textStyle, onPress, size}) {
   
   const {_fontSize, _width} = getSizes()
 
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress(value);
+    }
+  };
+
   return (
     <TouchableOpacity 
           style={ {...styles.container, width:_width}}
-          onPress = {onPress} 
+          onPress = {handlePress} 
     >
 
       <Text style={{...styles.text, fontSize: _fontSize}}> 
-        {title}
+        {text}
       </Text>
     </TouchableOpacity>
 
     );
 }
-export default ThemedButton;
 
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: theme.colors.secondary,
-    marginTop: 30,
-    borderRadius: 10
+    borderColor: theme.colors.primary,
+    borderWidth: 2,
+    margin: 10,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
+    borderStyle: "solid",
   },
     text: {
       textAlign:"center",
       margin: 15,
-      color: theme.colors.primary,
+      color: "black", 
       fontFamily: theme.fonts.primary
   },
 })

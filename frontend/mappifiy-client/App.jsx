@@ -5,6 +5,8 @@ import useLoadFonts from './Hooks/useLoadFonts'
 import IndexScreen from './Screens/IndexScreen';
 import RecordingScreen from './Screens/RecordingScreen';
 import VideoListScreen from './Screens/VideoListScreen';
+import MapScreen from './Screens/MapScreen';
+
 import { View, ActivityIndicator } from 'react-native';
 
 const Stack = createNativeStackNavigator();
@@ -29,6 +31,7 @@ function App() {
       <Stack.Navigator>  
         <Stack.Screen name="Index" component={IndexScreen} />
         <Stack.Screen name="Record Video" component={RecordingScreen} />
+        <Stack.Screen name="Maps" component={MapScreen} />
         <Stack.Screen name="Videos" component={VideoListScreen} />
       </Stack.Navigator>
     </NavigationContainer>

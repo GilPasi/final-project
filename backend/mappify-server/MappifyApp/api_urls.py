@@ -1,10 +1,15 @@
 from django.urls import path
-from .api_views import UploadVideoAPIView
+from .api_views import UploadVideoAPIView,ImageView
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path('', UploadVideoAPIView.as_view(), name='example_of_how_to_make_request'),
-    path('get-csrf-token/', UploadVideoAPIView.as_view(), name='example_of_how_to_make_request'),
-    path('upload/', UploadVideoAPIView.as_view(), name='upload_video'),
-
+    path('get-csrf-token/', UploadVideoAPIView.as_view(), name='request-csrf-token'),
+    path('upload/', UploadVideoAPIView.as_view(), name='upload-video'),
+    path('media/maps/<str:image_name>/', ImageView.as_view(), name='get-image'),
 ]
+
+if settings.DEBUG: 
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

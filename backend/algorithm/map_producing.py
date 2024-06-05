@@ -20,7 +20,8 @@ from algorithm.image_utils import \
     glue_map,\
     crop_prediction,\
     take_video_snapshots,\
-    processing_cleanup \
+    processing_cleanup ,\
+    save_pictures \
 
 def get_predictions():
     segmentor_script_path = os.path.join(get_algorithm_dir(), "segmentor.py")
@@ -127,12 +128,13 @@ def process_predictions(seg_prediction, dep_prediction):
 def save_map(map):
     map_image = Image.fromarray(map)
     map_image = map_image.convert("RGB")
-    map_image.save(get_default_output_path())
+    save_path = os.path.join(get_default_output_path(), "1.jpg")
+    map_image.save(save_path)
 
 def produce_map(video, debug = False):
+    processing_cleanup(get_default_input_path())
     snapshots = take_video_snapshots(video)
-    for idx, snapshot in enumerate(snapshots):
-        snapshot.save(os.path.join(get_default_input_path(), f"{idx}.jpg")) 
+    save_pictures(snapshots,get_default_input_path())
 
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
@@ -141,7 +143,6 @@ def produce_map(video, debug = False):
 
     map = glue_map(processed_output, _get_orientations())
     save_map(map)
-    processing_cleanup(get_default_input_path())
 
     if debug:
         _present_image(map)
