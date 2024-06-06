@@ -1,6 +1,5 @@
 from django.middleware.csrf import get_token
 from django.http import FileResponse, Http404, JsonResponse
-from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,6 +11,9 @@ import os
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, '..','..',))
+sys.path.append(parent_dir)
+
+from django.conf import settings
 
 sys.path.append(parent_dir)
 from algorithm.map_producing import produce_map

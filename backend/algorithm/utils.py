@@ -62,3 +62,4 @@ def slice_size():
     # might change dramtically and even dynamically
     DIVIDE_FACTOR = 4 
     return int(SNAPSHOT_SIZE[0] / DIVIDE_FACTOR)
+

@@ -5,11 +5,18 @@ import os
 import shutil
 
 from PIL import Image
-from algorithm.utils import list_directory_contents,get_default_output_path,\
-prefix_from_absolute_path,get_default_input_path, slice_size,\
-MINIMUM_LIGHT_PIXELS_IN_LINE, SNAPSHOT_SIZE
+from algorithm.utils import\
+    list_directory_contents,\
+    get_default_output_path,\
+    prefix_from_absolute_path,\
+    get_default_input_path,\
+    slice_size,\
+    MINIMUM_LIGHT_PIXELS_IN_LINE,\
+    SNAPSHOT_SIZE
 from algorithm.damaged_snapshot_exception import DamagedSnapshotException
 from tempfile import NamedTemporaryFile
+
+
 
 
 def crop_image_to_square(image_path: str, output_path:str):

@@ -1,4 +1,3 @@
-
 import os 
 import numpy as np 
 import pickle
@@ -6,6 +5,11 @@ import subprocess
 import matplotlib.pyplot as plt
 import threading
 import queue
+import sys 
+    
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, '..',))
+sys.path.append(parent_dir)
 
 from PIL import Image
 from algorithm.width_estimating import multiple_normalize_object_width
@@ -13,8 +17,7 @@ from algorithm.utils import \
     get_algorithm_dir,\
     ipc_file_path,\
     SNAPSHOT_SIZE,\
-    get_default_input_path,\
-    get_default_output_path
+    get_default_input_path\
 
 from algorithm.image_utils import \
     glue_map,\
@@ -22,6 +25,9 @@ from algorithm.image_utils import \
     take_video_snapshots,\
     processing_cleanup ,\
     save_pictures \
+    
+from algorithm.log_management import configure_logger
+logger = configure_logger(log_to_console=True, log_level='DEBUG')
 
 def get_predictions():
     segmentor_script_path = os.path.join(get_algorithm_dir(), "segmentor.py")
@@ -47,12 +53,15 @@ def get_predictions():
     seg_thread.join()
     dep_thread.join()
 
+    logger.debug("Predictions are done")
+
     seg_prediction = seg_output.get()
     dep_prediction = dep_output.get()
     return seg_prediction,dep_prediction
 
 
 def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
+    logger.debug(f"smart prediction with {env_name}")
     command = f"conda run -n {env_name} python {script_path}"
     process = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     if process.returncode != 0:
@@ -60,6 +69,7 @@ def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
     else:
         with open(ipc_file_path(env_name), 'rb') as file:
             prediction = pickle.load(file)
+            logger.debug("Data loaded from IPC successfully")
         os.remove(ipc_file_path(env_name))
         output_queue.put(prediction)
     
@@ -125,7 +135,8 @@ def process_predictions(seg_prediction, dep_prediction):
 
     return normal_results
 
-def produce_map(video, map_name, debug = False):
+def produce_map(video, debug = False):
+    logger.debug("Preprocessing start")
     processing_cleanup(get_default_input_path())
     snapshots = take_video_snapshots(video)
     save_pictures(snapshots,get_default_input_path())
@@ -135,15 +146,14 @@ def produce_map(video, map_name, debug = False):
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
     processed_output = process_predictions(seg_prediction, dep_prediction)
 
+    logger.debug("Glueing snapshots")
     map = glue_map(processed_output, _get_orientations())
     if debug:
-        _present_image(map)
-        input("Press enter\n")
+        try: # Do not let a mis-configuration make make the server collapse
+            _present_image(map)
+            input("Press enter\n")
+        except:
+            logger.error("Was not able to preview the results,"
+                          "try to operate map_producing with no server on")
 
     return map
-
-
-
-    
-
-

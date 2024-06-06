@@ -9,15 +9,13 @@ from utils import get_default_input_path
 from utils import ipc_file_path
 from utils import SNAPSHOT_SIZE
 from utils import list_directory_contents
-import logging
 zoe_directory = os.path.join(get_mappify_root_dir(),"backend", "lib", "ZoeDepth")
 sys.path.append(zoe_directory)
+from log_management import configure_logger
+
 from zoedepth.models.builder import build_model
 from zoedepth.utils.config import get_config
 from zoedepth.utils.misc import pil_to_batched_tensor
-
-logging.basicConfig(filename='image_processing.log', 
-    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
  
 class DepthExtractor(): 
     _zoe_instance = None
@@ -28,6 +26,7 @@ class DepthExtractor():
         proccessing_unit = self._current_machine_pu()
         self._zoe = model_zoe_n.to(proccessing_unit)
         self.input_path = get_default_input_path()
+        self.logger = configure_logger(log_to_console=True, log_level="DEBUG")
     
     @classmethod
     def _get_zoe_instance(cls):
@@ -55,10 +54,10 @@ class DepthExtractor():
     
     def predict(self):
         images = self._load_images()
-        logging.info(f"images, {images}")
+        self.logger.debug(f"images, {images}")
 
         all_predictions = [self._zoe.infer_pil(img) for img in images]
-        logging.info(f"preds {all_predictions[0].shape}", )
+        self.logger.debug(f"preds {all_predictions[0].shape}", )
 
         return np.array(all_predictions)
 
