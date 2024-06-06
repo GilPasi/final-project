@@ -15,6 +15,7 @@ parent_dir = os.path.abspath(os.path.join(current_dir, '..','..',))
 
 sys.path.append(parent_dir)
 from algorithm.map_producing import produce_map
+from algorithm.image_utils import save_map
 
 class UploadVideoAPIView(APIView):
     def get(self, request, *args, **kwargs):
@@ -37,11 +38,13 @@ class UploadVideoAPIView(APIView):
     def upload_map_data(self, request, *args, **kwargs):
         adaptedGyroData = [json.loads(request.data['gyroscopeData'])]
         request.data['gyroscopeData'] = adaptedGyroData 
+        map_name = "1.jpg"
 
         serializer = VideoUploadSerializer(data=request.data)
         if serializer.is_valid():
             video = serializer.validated_data['video']
-            produce_map(video)
+            map = produce_map(video)
+            save_map(map, map_name)
 
 
             # input_dir = os.path.join('media', 'videos')
@@ -60,15 +63,10 @@ class UploadVideoAPIView(APIView):
 class ImageView(APIView):
 
     def get(self, request, image_name, format=None):
-        print("1")
         if request.path.endswith('all/'):
-            print("2")
             return self.get_all_maps_names()
         else:
-            print("3")
             return self.get_map(image_name)
-
-
 
     def get_map(self, image_name):
         image_path = os.path.join(settings.MEDIA_ROOT, 'maps', image_name)

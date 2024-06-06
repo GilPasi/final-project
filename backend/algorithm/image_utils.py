@@ -5,7 +5,7 @@ import os
 import shutil
 
 from PIL import Image
-from algorithm.utils import list_directory_contents,\
+from algorithm.utils import list_directory_contents,get_default_output_path,\
 prefix_from_absolute_path,get_default_input_path, slice_size,\
 MINIMUM_LIGHT_PIXELS_IN_LINE, SNAPSHOT_SIZE
 from algorithm.damaged_snapshot_exception import DamagedSnapshotException
@@ -143,6 +143,12 @@ def processing_cleanup(directory):
 def save_pictures(snapshots:list, input_dir:str):
     for idx, snapshot in enumerate(snapshots):
         snapshot.save(os.path.join(input_dir, f"{idx}.jpg")) 
+
+def save_map(map: np.ndarray, map_name: str):
+    map_image = Image.fromarray(map)
+    map_image = map_image.convert("RGB")
+    save_path = os.path.join(get_default_output_path(), map_name)
+    map_image.save(save_path)
 
 
 if __name__ == "__main__":

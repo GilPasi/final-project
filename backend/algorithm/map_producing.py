@@ -125,13 +125,7 @@ def process_predictions(seg_prediction, dep_prediction):
 
     return normal_results
 
-def save_map(map):
-    map_image = Image.fromarray(map)
-    map_image = map_image.convert("RGB")
-    save_path = os.path.join(get_default_output_path(), "1.jpg")
-    map_image.save(save_path)
-
-def produce_map(video, debug = False):
+def produce_map(video, map_name, debug = False):
     processing_cleanup(get_default_input_path())
     snapshots = take_video_snapshots(video)
     save_pictures(snapshots,get_default_input_path())
@@ -142,8 +136,6 @@ def produce_map(video, debug = False):
     processed_output = process_predictions(seg_prediction, dep_prediction)
 
     map = glue_map(processed_output, _get_orientations())
-    save_map(map)
-
     if debug:
         _present_image(map)
         input("Press enter\n")
