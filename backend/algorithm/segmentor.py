@@ -8,20 +8,16 @@ import matplotlib.pyplot as plt
 import sys
 import pickle
 
-from utils import list_directory_contents
-from utils import get_default_input_path
-from utils import get_mappify_root_dir
-from utils import ipc_file_path
-from utils import SNAPSHOT_SIZE
+from utils import \
+    list_directory_contents,\
+    get_default_input_path,\
+    get_mappify_root_dir,\
+    ipc_file_path,\
+    SNAPSHOT_SIZE 
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
-import logging
-
-
-
-logging.basicConfig(filename='image_processing.log', 
-    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from log_management import configure_logger
 
 class Segmentor(): 
     _segmention_model_instance = None 
@@ -31,6 +27,8 @@ class Segmentor():
         self._model = Segmentor._get_segmentation_model_instance()
         self.threshhold = 0.07 # De facto works better for 0.07
         self.threshhold = 0.5
+        self.logger = configure_logger(log_to_console=True, log_level="DEBUG")
+
     
     @classmethod
     def _get_segmentation_model_instance(cls):
