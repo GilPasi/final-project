@@ -45,11 +45,6 @@ export const usePipeline = () => {
     const uri = uriObj.uri;
     const fileType = uri.split('.').pop();
     formData = new FormData()
-    const gyroscopeData1 = [
-      {x: 1.5, y: 3.14, z: 55.875},
-      {x: 1.5, y: 3.5, z: 55.875},
-      {x: 2.5, y: 5.14, z: 55.55},
-    ];
     
     formData.append('video', {
       uri,
@@ -57,7 +52,7 @@ export const usePipeline = () => {
       type: `video/${fileType}`,
     });
     
-    formData.append('gyroscopeData', JSON.stringify(gyroscopeData1));
+    formData.append('gyroscopeData', JSON.stringify(gyroscopeData));
 
     try {
       const response = await api.post('/upload/', formData, {

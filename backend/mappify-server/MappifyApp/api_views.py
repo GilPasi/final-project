@@ -38,14 +38,15 @@ class UploadVideoAPIView(APIView):
             return Response({'error': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
     
     def upload_map_data(self, request, *args, **kwargs):
-        adaptedGyroData = [json.loads(request.data['gyroscopeData'])]
-        request.data['gyroscopeData'] = adaptedGyroData 
+        print("gyroData", request.data['gyroscopeData'])
+        adapted_gyro_data = json.loads(request.data['gyroscopeData'])
+        request.data['gyroscopeData'] = adapted_gyro_data 
         map_name = "1.jpg"
 
         serializer = VideoUploadSerializer(data=request.data)
         if serializer.is_valid():
             video = serializer.validated_data['video']
-            map = produce_map(video)
+            map = produce_map(video, adapted_gyro_data)
             save_map(map, map_name)
 
 

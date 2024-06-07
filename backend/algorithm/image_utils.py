@@ -19,6 +19,7 @@ from tempfile import NamedTemporaryFile
 
 
 
+
 def crop_image_to_square(image_path: str, output_path:str):
     image = Image.open(image_path)
     width, height = image.size
@@ -92,17 +93,7 @@ def crop_prediction(prediction: np.ndarray):
     
     return cropped_matrices
 
-def take_video_snapshots(uploaded_file, snapshot_interval:int=1):
-    """
-    Takes snapshots from an InMemoryUploadedFile video instance.
-
-    Args:
-    uploaded_file (InMemoryUploadedFile): The uploaded video file instance.
-    snapshot_count (int): The number of snapshots to take.
-
-    Returns:
-    List of PIL.Image objects representing the snapshots.
-    """
+def in_memory_video_to_video_capture(uploaded_file):
     with NamedTemporaryFile(delete=True, suffix='.mp4') as temp_file:
         temp_file.write(uploaded_file.read())
         temp_file.flush()
@@ -111,25 +102,40 @@ def take_video_snapshots(uploaded_file, snapshot_interval:int=1):
 
         if not video.isOpened():
             raise ValueError("Could not open video file.")
+    return video
 
-        total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-        fps = int(video.get(cv2.CAP_PROP_FPS))
-        step_size = fps * snapshot_interval 
-        snapshot_count = max(total_frames // step_size, 1) # At least one snapshot
 
-        snapshots = []
-        for i in range(0, snapshot_count):
-            frame_number = i * step_size
-            video.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
-            ret, frame = video.read()
-            if ret:
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frame_pil = Image.fromarray(frame_rgb)
-                snapshots.append(frame_pil)
-            else:
-                break
 
-        video.release()
+def take_video_snapshots(video, snapshot_interval:int=1):
+    """
+    Takes snapshots from an cv2.VideoCapture video instance.
+
+    Args:
+    video (cv2.VideoCapture): The uploaded video file instance.
+    snapshot_count (int): The number of snapshots to take.
+
+    Returns:
+    List of PIL.Image objects representing the snapshots.
+    """
+    # video = in_memory_video_to_video_capture(video)
+    total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = int(video.get(cv2.CAP_PROP_FPS))
+    step_size = fps * snapshot_interval 
+    snapshot_count = max(total_frames // step_size, 1) # At least one snapshot
+
+    snapshots = []
+    for i in range(0, snapshot_count):
+        frame_number = i * step_size
+        video.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        ret, frame = video.read()
+        if ret:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_pil = Image.fromarray(frame_rgb)
+            snapshots.append(frame_pil)
+        else:
+            break
+
+    video.release()
     return snapshots
 
 def processing_cleanup(directory):

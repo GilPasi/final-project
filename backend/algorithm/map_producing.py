@@ -24,7 +24,8 @@ from algorithm.image_utils import \
     crop_prediction,\
     take_video_snapshots,\
     processing_cleanup ,\
-    save_pictures \
+    save_pictures, \
+    in_memory_video_to_video_capture\
     
 from algorithm.log_management import configure_logger
 logger = configure_logger(log_to_console=True, log_level='DEBUG')
@@ -135,11 +136,23 @@ def process_predictions(seg_prediction, dep_prediction):
 
     return normal_results
 
-def produce_map(video, debug = False):
+def produce_map(video_file, gyroscope_data:list, debug = False):
     logger.debug("Preprocessing start")
     processing_cleanup(get_default_input_path())
-    snapshots = take_video_snapshots(video)
-    save_pictures(snapshots,get_default_input_path())
+    snapshot_interval = 3 
+
+
+    video_instance = in_memory_video_to_video_capture(video_file)
+    visual_snapshots = take_video_snapshots(video_instance, snapshot_interval)
+    import cv2
+    total_frames = int(video_instance.get(cv2.CAP_PROP_FRAME_COUNT))
+    print("total_frames",total_frames)
+    print("total_gy",len(gyroscope_data))
+    print(gyroscope_data)
+
+
+    # gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval)
+    save_pictures(visual_snapshots,get_default_input_path())
 
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
