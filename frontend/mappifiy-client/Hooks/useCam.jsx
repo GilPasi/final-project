@@ -48,9 +48,10 @@ export default function useCam(isRecording) {
         const video = await cameraRef.current.recordAsync();
         stopTimer();
         setVideoUri(video.uri);
-        console.log("Elapsed time", Date.now() - startTime.current);
-        console.log("Video was recorded");
-      } catch (error) {
+        endTime = Date.now()
+        console.log(`Camera start time ${startTime.current} `
+          `| end time ${endTime} | delta ${ endTime - startTime.current} `)
+        } catch (error) {
         console.log("Error while recording video", error);
       }
     }

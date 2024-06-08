@@ -38,6 +38,9 @@ export default function useGyro(isRecording) {
   const stopRecording = useCallback(() => {
     _safeUnsubscribe();
     stopTimer();
+    endTime = Date.now()
+    console.log(`Gyr start time ${startTime.current} `,
+      `| end time ${endTime} | delta ${ endTime - startTime.current} `);
   }, [stopTimer]);
 
   const _safeUnsubscribe = useCallback(() => {

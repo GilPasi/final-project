@@ -12,6 +12,7 @@ import theme from '../Components/StaticStyle';
 
 export default function RecordingScreen() {
   const [isRecording, setIsRecording] = useState(false)
+  const [recordingSent ,setRecordingSent] = useState(false) 
   const { uploadProgress, uploadStatus, uploadVideo, csrfToken } = usePipeline()
   const cam = useCam(isRecording)
   const gyro = useGyro(isRecording)
@@ -37,26 +38,17 @@ export default function RecordingScreen() {
     setIsRecording(false)
   }
 
-  // const handleRecord = async () => {
-  //   // console.log("Recording started")
-  //   setIsRecording(true)
-  //   gyro.startRecording()
-  //   await cam.startRecording()
-  // }
+  const handleSend = () => {
+    setRecordingSent(true)
+    uploadVideo(cam.videoUri, gyro.data)
+  }
 
 
   const handleRecord = async () => {
     setIsRecording(true);
     await Promise.all([gyro.isReady(), cam.isReady()])
-      // .then(()=>{
-
-      // })
-      // .catch(()=>{
-      //   console.error("Was not able to sync camera and gyroscope")
-      // })
-
-      gyro.startRecording()
-      cam.startRecording()
+    gyro.startRecording()
+    cam.startRecording()
   };
   
   if (!cam.cameraPermission || !cam.microphonePermission) {
@@ -88,7 +80,8 @@ export default function RecordingScreen() {
     return (<View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
       {uploadStatus != SUCCESS_MSG && <ThemedButton
         title="Send Video"
-        onPress={() => uploadVideo(cam.videoUri, gyro.data)}
+        onPress={handleSend}
+        disabled={recordingSent}
       />}
       <Title text={uploadStatus} size={40} />
       <View style={{...styles.loadingContainer}}>
