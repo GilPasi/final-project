@@ -106,7 +106,7 @@ def in_memory_video_to_video_capture(uploaded_file):
 
 
 
-def take_video_snapshots(video, snapshot_interval:int=1):
+def take_video_snapshots(video: cv2.VideoCapture, snapshot_interval:int):
     """
     Takes snapshots from an cv2.VideoCapture video instance.
 
@@ -117,9 +117,9 @@ def take_video_snapshots(video, snapshot_interval:int=1):
     Returns:
     List of PIL.Image objects representing the snapshots.
     """
-    # video = in_memory_video_to_video_capture(video)
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(video.get(cv2.CAP_PROP_FPS))
+
     step_size = fps * snapshot_interval 
     snapshot_count = max(total_frames // step_size, 1) # At least one snapshot
 
@@ -134,9 +134,11 @@ def take_video_snapshots(video, snapshot_interval:int=1):
             snapshots.append(frame_pil)
         else:
             break
-
-    video.release()
+    #IMPORTANT it is the user's responsibility to perform video.release() 
     return snapshots
+
+def take_gyroscope_snapshots(gyroscope_data:list, snapshot_interval:int):
+    return [{}]  # Mockup
 
 def processing_cleanup(directory):
     if not os.path.exists(directory): 

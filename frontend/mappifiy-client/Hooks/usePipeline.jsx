@@ -41,8 +41,7 @@ export const usePipeline = () => {
     return csrfToken.current
   };
 
-  const uploadVideo = async (uriObj, gyroscopeData) => {
-    const uri = uriObj.uri;
+  const uploadVideo = async (uri, gyroscopeData) => {
     const fileType = uri.split('.').pop();
     formData = new FormData()
     

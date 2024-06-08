@@ -1,13 +1,35 @@
 import { useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 export default function useCam(isRecording) {
-    const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-    const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
-    const [videoUri, setVideoUri] = useState(null);
-    cameraRef = useRef() 
+  const [timerActive, setTimerActive] = useState(false);
+  const timerId = useRef(null);
+  const startTime = useRef(null);
+  const [timeElapsed, setTimeElapsed] = useState(0);
 
-      
+  const startTimer = useCallback(() => {
+    if (timerId.current === null) {
+      setTimerActive(true);
+      startTime.current = Date.now();
+      timerId.current = setInterval(() => {
+        setTimeElapsed(Date.now() - startTime.current);
+      }, 1000);
+    }
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerId.current !== null) {
+      clearInterval(timerId.current);
+      timerId.current = null;
+      setTimerActive(false);
+    }
+  }, []);
+
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [microphonePermission, requestMicrophonePermission] = useMicrophonePermissions();
+  const [videoUri, setVideoUri] = useState(null);
+  const cameraRef = useRef();
+
   async function requestPermissions() {
     const cameraStatus = await requestCameraPermission();
     const microphoneStatus = await requestMicrophonePermission();
@@ -17,37 +39,52 @@ export default function useCam(isRecording) {
     } else {
       console.log("Permissions not granted");
     }
-
   }
 
   const startRecording = async () => {
     if (cameraRef.current) {
       try {
-
-        await cameraRef.current.recordAsync()
-          .then(vidUri => {
-            console.log("Video got ", vidUri)
-            setVideoUri(vidUri)
-          })
-          .catch(err => console.log("Unable to prodice video uri", err))
+        startTimer();
+        const video = await cameraRef.current.recordAsync();
+        stopTimer();
+        setVideoUri(video.uri);
+        console.log("Elapsed time", Date.now() - startTime.current);
+        console.log("Video was recorded");
       } catch (error) {
-        console.log("Error while recording video", error)
+        console.log("Error while recording video", error);
       }
-    }};
+    }
+  };
 
   const stopRecording = () => {
     if (cameraRef.current && isRecording) {
       cameraRef.current.stopRecording();
+      stopTimer();
     }
   };
 
-  return {
-        startRecording,
-        stopRecording,
-        requestPermissions,
-        cameraPermission,
-        microphonePermission,
-        videoUri,
-        cameraRef,
+  const isReady = () => new Promise((resolve) => {
+    if (cameraRef.current) {
+      resolve();
+    } else {
+      const interval = setInterval(() => {
+        if (cameraRef.current) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 100);
     }
+  });
+
+  return {
+    startRecording,
+    stopRecording,
+    requestPermissions,
+    cameraPermission,
+    microphonePermission,
+    videoUri,
+    cameraRef,
+    timeElapsed,
+    isReady,
+  };
 }

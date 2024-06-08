@@ -23,19 +23,42 @@ export default function RecordingScreen() {
 
   function toggleRecord() {
     if (isRecording) {
-      console.log("Recording stopped")
-      gyro.stopRecording()
-      cam.stopRecording()
-      setIsRecording(false)
+      handleStop()
     }
     else {
-      console.log("Recording started")
-      gyro.startRecording()
-      cam.startRecording()
-      setIsRecording(true)
+        handleRecord()
     }
   }
 
+  const handleStop = () => {
+    // console.log("Recording stopped")
+    gyro.stopRecording()
+    cam.stopRecording()
+    setIsRecording(false)
+  }
+
+  // const handleRecord = async () => {
+  //   // console.log("Recording started")
+  //   setIsRecording(true)
+  //   gyro.startRecording()
+  //   await cam.startRecording()
+  // }
+
+
+  const handleRecord = async () => {
+    setIsRecording(true);
+    await Promise.all([gyro.isReady(), cam.isReady()])
+      // .then(()=>{
+
+      // })
+      // .catch(()=>{
+      //   console.error("Was not able to sync camera and gyroscope")
+      // })
+
+      gyro.startRecording()
+      cam.startRecording()
+  };
+  
   if (!cam.cameraPermission || !cam.microphonePermission) {
     return <View />;
   }

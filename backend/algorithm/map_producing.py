@@ -23,6 +23,7 @@ from algorithm.image_utils import \
     glue_map,\
     crop_prediction,\
     take_video_snapshots,\
+    take_gyroscope_snapshots,\
     processing_cleanup ,\
     save_pictures, \
     in_memory_video_to_video_capture\
@@ -136,22 +137,23 @@ def process_predictions(seg_prediction, dep_prediction):
 
     return normal_results
 
+def take_snapshots(video_file, gyroscope_data,snapshot_interval = 3 ):
+    import cv2
+    video_instance = in_memory_video_to_video_capture(video_file)
+    print("vid fps" , int(video_instance.get(cv2.CAP_PROP_FPS)))
+    print("Video snapshots" ,int(video_instance.get(cv2.CAP_PROP_FRAME_COUNT)))
+    print("Gyro snpashots", len(gyroscope_data))
+
+    visual_snapshots = take_video_snapshots(video_instance, snapshot_interval)
+    video_instance.release()
+    gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval)
+    return visual_snapshots, gyroscope_snapshots
+
 def produce_map(video_file, gyroscope_data:list, debug = False):
     logger.debug("Preprocessing start")
     processing_cleanup(get_default_input_path())
-    snapshot_interval = 3 
+    visual_snapshots, gyroscope_snapshots = take_snapshots(video_file, gyroscope_data)
 
-
-    video_instance = in_memory_video_to_video_capture(video_file)
-    visual_snapshots = take_video_snapshots(video_instance, snapshot_interval)
-    import cv2
-    total_frames = int(video_instance.get(cv2.CAP_PROP_FRAME_COUNT))
-    print("total_frames",total_frames)
-    print("total_gy",len(gyroscope_data))
-    print(gyroscope_data)
-
-
-    # gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval)
     save_pictures(visual_snapshots,get_default_input_path())
 
     seg_prediction, dep_prediction = get_predictions()

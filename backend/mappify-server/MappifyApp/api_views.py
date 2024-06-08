@@ -28,8 +28,17 @@ class UploadVideoAPIView(APIView):
 
     def get_csrf_token(self, request):
         csrf_token = get_token(request)
-        print(f"CSRF Token: {csrf_token}")
+        ip = self._get_client_ip(request)
+        print(f"CSRF Token granted to {ip}")
         return Response({'csrfToken': csrf_token})
+    
+    def _get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
     
     def post(self, request, *args, **kwargs):
         if self.request.path.endswith('upload/'):
@@ -38,7 +47,6 @@ class UploadVideoAPIView(APIView):
             return Response({'error': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
     
     def upload_map_data(self, request, *args, **kwargs):
-        print("gyroData", request.data['gyroscopeData'])
         adapted_gyro_data = json.loads(request.data['gyroscopeData'])
         request.data['gyroscopeData'] = adapted_gyro_data 
         map_name = "1.jpg"
