@@ -3,11 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSmartPhoneFps } from '../utilities/utils';
 
 export default function useGyro(isRecording) {
-    const [data, setData] = useState([{
-    x: 0,
-    y: 0,
-    z: 0,
-  }]);
+  const [data, setData] = useState([]);
   const [subscription, setSubscription] = useState(null);
   const timerId = useRef(null);
   const startTime = useRef(null);
@@ -29,7 +25,7 @@ export default function useGyro(isRecording) {
     }
   }, []);
 
-  const startRecording = () => {
+  const startRecording = useCallback(() => {
     setData([]);
     startTimer();
     setSubscription(
@@ -37,23 +33,22 @@ export default function useGyro(isRecording) {
         setData((prevData) => [...prevData, gyroscopeData]);
       })
     );
-  }
+  }, [startTimer]);
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     _safeUnsubscribe();
     stopTimer();
     endTime = Date.now()
-    console.log(`Gyr start time ${startTime.current} `,
-      `| end time ${endTime} | delta ${ endTime - startTime.current} `);
-  }
+    console.log(`Gyroscope start time \t ${startTime.current} `,
+      `|\t end time ${endTime} |\t delta ${ endTime - startTime.current} `)
+  }, [stopTimer]);
 
-  const _safeUnsubscribe = () => {
+  const _safeUnsubscribe = useCallback(() => {
     if (!isRecording && subscription) {
       subscription.remove();
       setSubscription(null);
-      console.log('Gyroscope data collected: ', data.slice(0, 2), '\n...');
     }
-  }
+  }, [subscription, data]);
 
   useEffect(() => {
     const millisecondsInSecond = 1000;

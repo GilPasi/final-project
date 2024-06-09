@@ -49,8 +49,8 @@ export default function useCam(isRecording) {
         stopTimer();
         setVideoUri(video.uri);
         endTime = Date.now()
-        console.log(`Camera start time ${startTime.current} `,
-          `| end time ${endTime} | delta ${ endTime - startTime.current} `)
+        console.log(`Camera start time \t ${startTime.current} `,
+          `|\t end time ${endTime} |\t delta ${ endTime - startTime.current} `)
         } catch (error) {
         console.log("Error while recording video", error);
       }

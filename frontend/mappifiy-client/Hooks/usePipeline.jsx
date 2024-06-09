@@ -51,7 +51,7 @@ export const usePipeline = () => {
       type: `video/${fileType}`,
     });
 
-    console.log("Gyroscope data" ,gyroscopeData)
+    // console.log("Gyroscope data" ,gyroscopeData.length)
     
     formData.append('gyroscopeData', JSON.stringify(gyroscopeData));
 
