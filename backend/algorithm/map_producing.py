@@ -141,8 +141,8 @@ def take_snapshots(video_file, gyroscope_data,snapshot_interval = 3 ):
     import cv2
     video_instance = in_memory_video_to_video_capture(video_file)
     print("vid fps" , int(video_instance.get(cv2.CAP_PROP_FPS)))
-    print("Video snapshots" ,int(video_instance.get(cv2.CAP_PROP_FRAME_COUNT)))
-    print("Gyro snpashots", len(gyroscope_data))
+    print("Video fc" ,int(video_instance.get(cv2.CAP_PROP_FRAME_COUNT)))
+    print("Gyro fc", len(gyroscope_data))
 
     visual_snapshots = take_video_snapshots(video_instance, snapshot_interval)
     video_instance.release()
