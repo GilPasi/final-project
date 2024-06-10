@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import threading
 import queue
 import sys 
+import cv2
+
     
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, '..',))
@@ -13,11 +15,13 @@ sys.path.append(parent_dir)
 
 from PIL import Image
 from algorithm.width_estimating import multiple_normalize_object_width
+from algorithm.exceptions.unsynced_crude_data_exception import UnsyncedCrudeDataException
 from algorithm.utils import \
     get_algorithm_dir,\
     ipc_file_path,\
     SNAPSHOT_SIZE,\
-    get_default_input_path\
+    get_default_input_path,\
+    count_items_in_path\
 
 from algorithm.image_utils import \
     glue_map,\
@@ -55,7 +59,7 @@ def get_predictions():
     seg_thread.join()
     dep_thread.join()
 
-    logger.debug("Predictions are done")
+    logger.info("Prediction process is complete")
 
     seg_prediction = seg_output.get()
     dep_prediction = dep_output.get()
@@ -63,7 +67,7 @@ def get_predictions():
 
 
 def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
-    logger.debug(f"smart prediction with {env_name}")
+    logger.info(f"smart prediction with {env_name}")
     command = f"conda run -n {env_name} python {script_path}"
     process = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     if process.returncode != 0:
@@ -71,7 +75,7 @@ def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
     else:
         with open(ipc_file_path(env_name), 'rb') as file:
             prediction = pickle.load(file)
-            logger.debug("Data loaded from IPC successfully")
+            logger.info("Data loaded from IPC successfully")
         os.remove(ipc_file_path(env_name))
         output_queue.put(prediction)
     
@@ -112,20 +116,10 @@ def _present_image(array_to_plot: np.ndarray, array_name:str = "Image"):
     plt.title(array_name)
     plt.show()
     
-def _get_orientations():
+def _get_orientations(gyroscope_snapshots: list):
     # Mockaup
-    path = get_default_input_path()
-    number_of_images = _count_items_in_path(path)
-    orientations = ['vertical'] * number_of_images
-
+    orientations = ['vertical'] * len(gyroscope_snapshots)
     return orientations
-
-def _count_items_in_path(path):
-    try:
-        items = os.listdir(path)
-        return len(items)
-    except Exception:
-        return 0
 
 def combine_analysis(dep_prediction, seg_prediction):
     return dep_prediction * seg_prediction
@@ -134,35 +128,70 @@ def process_predictions(seg_prediction, dep_prediction):
     combined_prediction = combine_analysis(seg_prediction, dep_prediction)
     cropped_preds = crop_prediction(combined_prediction)    
     normal_results = multiple_normalize_object_width(cropped_preds)
-
     return normal_results
 
-def take_snapshots(video_file, gyroscope_data,snapshot_interval = 3 ):
-    import cv2
-    video_instance = in_memory_video_to_video_capture(video_file)
-    print("vid fps" , int(video_instance.get(cv2.CAP_PROP_FPS)))
-    print("Video fc" ,int(video_instance.get(cv2.CAP_PROP_FRAME_COUNT)))
-    print("Gyro fc", len(gyroscope_data))
-
-    visual_snapshots = take_video_snapshots(video_instance, snapshot_interval)
-    video_instance.release()
+def take_snapshots(video, gyroscope_data,snapshot_interval = 3 ):
+    visual_snapshots = take_video_snapshots(video, snapshot_interval)
     gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval)
     return visual_snapshots, gyroscope_snapshots
 
-def produce_map(video_file, gyroscope_data:list, debug = False):
-    logger.debug("Preprocessing start")
-    processing_cleanup(get_default_input_path())
-    visual_snapshots, gyroscope_snapshots = take_snapshots(video_file, gyroscope_data)
+def straighten_gyroscope_data(video, gyroscope_data):
+    video_frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    gyroscope_data_frame_count = len(gyroscope_data)
+    prepared_gyroscope_data = [] 
+    print("gyro vector, ", gyroscope_data_frame_count)
+    print("cam vector,", video_frame_count )
 
+    min_frame_count = min(video_frame_count, gyroscope_data_frame_count)
+    logger.debug(f"Video frames count {video_frame_count}")
+    logger.debug(f"Video frames count {gyroscope_data_frame_count}")
+
+    DEVIATION_THRESHHOLD = 1.2 # If there is an unsynchronization of more than 20% raise an exception
+
+    if video_frame_count / min_frame_count > DEVIATION_THRESHHOLD or \
+        gyroscope_data_frame_count / min_frame_count > DEVIATION_THRESHHOLD:
+        raise UnsyncedCrudeDataException(
+            DEVIATION_THRESHHOLD, None, ("video" ,video_frame_count), ("gyroscope data", gyroscope_data_frame_count) )
+    
+    if gyroscope_data_frame_count > min_frame_count:  
+        gyroscope_data_delta_from_from_minimum = len(gyroscope_data) - min_frame_count
+        prepared_gyroscope_data = gyroscope_data[gyroscope_data_delta_from_from_minimum // 2 :
+                                                - gyroscope_data_delta_from_from_minimum // 2]
+
+    if gyroscope_data_frame_count < min_frame_count: 
+        total_padding = min_frame_count - gyroscope_data_frame_count
+        left_padding = total_padding // 2
+        right_padding = total_padding - left_padding
+        first_cell = gyroscope_data[0]
+        last_cell = gyroscope_data[-1]
+        prepared_gyroscope_data = [first_cell] * left_padding + gyroscope_data + [last_cell] * right_padding
+    
+    print("Prepared gyroscop fc," , len(prepared_gyroscope_data))
+    return prepared_gyroscope_data
+
+def preprocess(video_file, gyroscope_data:list,):
+    processing_cleanup(get_default_input_path())
+    video_instance = in_memory_video_to_video_capture(video_file)
+    # Straithen only the gyroscope since straithening the video is way more complex
+    # and any way will be implemented in the client's prxy in the future.
+
+    prepared_gyroscope_data  = straighten_gyroscope_data(video_instance, gyroscope_data)
+    visual_snapshots, gyroscope_snapshots = take_snapshots(video_instance, prepared_gyroscope_data)
+    video_instance.release()
     save_pictures(visual_snapshots,get_default_input_path())
+    return _get_orientations(gyroscope_snapshots)
+
+def produce_map(video_file, gyroscope_data:list, debug = False):
+    logger.info("Preprocessing start")
+    orientations = preprocess(video_file, gyroscope_data)
 
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
     processed_output = process_predictions(seg_prediction, dep_prediction)
 
-    logger.debug("Glueing snapshots")
-    map = glue_map(processed_output, _get_orientations())
+    logger.info("Glueing snapshots")
+    map = glue_map(processed_output, orientations)
     if debug:
         try: # Do not let a mis-configuration make make the server collapse
             _present_image(map)

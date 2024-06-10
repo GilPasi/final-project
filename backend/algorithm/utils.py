@@ -37,6 +37,14 @@ def ipc_file_path(env_name):
     path = os.path.join(get_mappify_root_dir(), "backend", "algorithm", file_name)
     return path
 
+def count_items_in_path(path):
+    try:
+        items = os.listdir(path)
+        return len(items)
+    except Exception:
+        return 0
+
+
 def list_directory_contents(directory_path, allowed_extentsions=[]):
     """Lists the names and paths of all files and directories in the specified directory."""
     
