@@ -173,7 +173,7 @@ def preprocess(video_file, gyroscope_data:list,):
     processing_cleanup(get_default_input_path())
     video_instance = in_memory_video_to_video_capture(video_file)
     # Straithen only the gyroscope since straithening the video is way more complex
-    # and any way will be implemented in the client's prxy in the future.
+    # and any way will be implemented in the client's proxy in the future.
 
     prepared_gyroscope_data  = straighten_gyroscope_data(video_instance, gyroscope_data)
     visual_snapshots, gyroscope_snapshots = take_snapshots(video_instance, prepared_gyroscope_data)

@@ -13,7 +13,7 @@ from algorithm.utils import\
     slice_size,\
     MINIMUM_LIGHT_PIXELS_IN_LINE,\
     SNAPSHOT_SIZE
-from algorithm.damaged_snapshot_exception import DamagedSnapshotException
+from algorithm.exceptions.damaged_snapshot_exception import DamagedSnapshotException
 from tempfile import NamedTemporaryFile
 
 
@@ -45,7 +45,6 @@ def find_first_positive_row(matrix, threshhold):
         raise DamagedSnapshotException(f"The given matrix has too little light pixels" )
 
 def glue_map(matrices, orientations):
-    print(len(matrices))
     if len(matrices) != len(orientations):
         raise ValueError(f"The number of matrices ({len(matrices)}) ",
                          f"and orientations count ({len(orientations)}) must be the same.")
