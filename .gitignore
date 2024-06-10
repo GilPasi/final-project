@@ -4,3 +4,4 @@
 input/
 maps/
 .venv
+.venv/*
