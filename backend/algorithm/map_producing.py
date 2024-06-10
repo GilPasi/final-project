@@ -16,14 +16,14 @@ sys.path.append(parent_dir)
 from PIL import Image
 from algorithm.width_estimating import multiple_normalize_object_width
 from algorithm.exceptions.unsynced_crude_data_exception import UnsyncedCrudeDataException
-from algorithm.utils import \
+from algorithm.utilities.administation import \
     get_algorithm_dir,\
     ipc_file_path,\
     SNAPSHOT_SIZE,\
     get_default_input_path,\
     count_items_in_path\
 
-from algorithm.image_utils import \
+from algorithm.utilities.image_utils import \
     glue_map,\
     crop_prediction,\
     take_video_snapshots,\
@@ -32,7 +32,7 @@ from algorithm.image_utils import \
     save_pictures, \
     in_memory_video_to_video_capture\
     
-from algorithm.log_management import configure_logger
+from algorithm.utilities.log_management import configure_logger
 logger = configure_logger(log_to_console=True, log_level='DEBUG')
 
 def get_predictions():

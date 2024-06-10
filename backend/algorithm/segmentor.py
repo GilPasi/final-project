@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import sys
 import pickle
 
-from utils import \
+from algorithm.utilities.administation import \
     list_directory_contents,\
     get_default_input_path,\
     get_mappify_root_dir,\
@@ -17,7 +17,7 @@ from utils import \
 from focal_loss import BinaryFocalLoss
 from tensorflow.keras.models import load_model
 from pathlib import Path
-from log_management import configure_logger
+from algorithm.utilities.log_management import configure_logger
 
 class Segmentor(): 
     _segmention_model_instance = None 

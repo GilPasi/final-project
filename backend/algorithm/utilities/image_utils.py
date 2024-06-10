@@ -5,7 +5,7 @@ import os
 import shutil
 
 from PIL import Image
-from algorithm.utils import\
+from algorithm.utilities.administation import\
     list_directory_contents,\
     get_default_output_path,\
     prefix_from_absolute_path,\

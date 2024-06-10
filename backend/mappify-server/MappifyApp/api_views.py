@@ -17,7 +17,7 @@ from django.conf import settings
 
 sys.path.append(parent_dir)
 from algorithm.map_producing import produce_map
-from algorithm.image_utils import save_map
+from algorithm.utilities.image_utils import save_map
 from algorithm.exceptions.unsynced_crude_data_exception import UnsyncedCrudeDataException
 
 class UploadVideoAPIView(APIView):
