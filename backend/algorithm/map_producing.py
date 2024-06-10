@@ -8,7 +8,6 @@ import queue
 import sys 
 import cv2
 
-    
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, '..',))
 sys.path.append(parent_dir)
@@ -142,40 +141,39 @@ def straighten_gyroscope_data(video, gyroscope_data):
     print("gyro vector, ", gyroscope_data_frame_count)
     print("cam vector,", video_frame_count )
 
-    min_frame_count = min(video_frame_count, gyroscope_data_frame_count)
     logger.debug(f"Video frames count {video_frame_count}")
     logger.debug(f"Video frames count {gyroscope_data_frame_count}")
 
-    DEVIATION_THRESHHOLD = 1.2 # If there is an unsynchronization of more than 20% raise an exception
-
-    if video_frame_count / min_frame_count > DEVIATION_THRESHHOLD or \
-        gyroscope_data_frame_count / min_frame_count > DEVIATION_THRESHHOLD:
-        raise UnsyncedCrudeDataException(
-            DEVIATION_THRESHHOLD, None, ("video" ,video_frame_count), ("gyroscope data", gyroscope_data_frame_count) )
+    DEVIATION_THRESHHOLD = 0.2 # If there is an unsynchronization of more than 20% raise an exception
+    if not 1 - DEVIATION_THRESHHOLD <\
+          gyroscope_data_frame_count / video_frame_count < 1 + DEVIATION_THRESHHOLD :
+        raise UnsyncedCrudeDataException(DEVIATION_THRESHHOLD, None,
+            ("video" ,video_frame_count),("gyroscope data", gyroscope_data_frame_count) )
     
-    if gyroscope_data_frame_count > min_frame_count:  
-        gyroscope_data_delta_from_from_minimum = len(gyroscope_data) - min_frame_count
-        prepared_gyroscope_data = gyroscope_data[gyroscope_data_delta_from_from_minimum // 2 :
-                                                - gyroscope_data_delta_from_from_minimum // 2]
 
-    if gyroscope_data_frame_count < min_frame_count: 
-        total_padding = min_frame_count - gyroscope_data_frame_count
+    if gyroscope_data_frame_count > video_frame_count: 
+        print("2") 
+        gyroscope_data_delta_from_video_frame_count= len(gyroscope_data) - video_frame_count
+        prepared_gyroscope_data = gyroscope_data[gyroscope_data_delta_from_video_frame_count // 2 :
+                                                - gyroscope_data_delta_from_video_frame_count // 2]
+
+    if gyroscope_data_frame_count < video_frame_count: 
+        print("3")
+        total_padding = video_frame_count - gyroscope_data_frame_count
         left_padding = total_padding // 2
         right_padding = total_padding - left_padding
         first_cell = gyroscope_data[0]
         last_cell = gyroscope_data[-1]
         prepared_gyroscope_data = [first_cell] * left_padding + gyroscope_data + [last_cell] * right_padding
     
-    print("Prepared gyroscop fc," , len(prepared_gyroscope_data))
     return prepared_gyroscope_data
 
 def preprocess(video_file, gyroscope_data:list,):
     processing_cleanup(get_default_input_path())
     video_instance = in_memory_video_to_video_capture(video_file)
-    # Straithen only the gyroscope since straithening the video is way more complex
-    # and any way will be implemented in the client's proxy in the future.
-
-    prepared_gyroscope_data  = straighten_gyroscope_data(video_instance, gyroscope_data)
+    # Straithen only the gyroscope since straightening the video is way more complex
+    # and anyway will be implemented in the client's proxy in the future.
+    prepared_gyroscope_data  = straighten_gyroscope_data(video_instance, gyroscope_data)  
     visual_snapshots, gyroscope_snapshots = take_snapshots(video_instance, prepared_gyroscope_data)
     video_instance.release()
     save_pictures(visual_snapshots,get_default_input_path())
@@ -184,6 +182,7 @@ def preprocess(video_file, gyroscope_data:list,):
 def produce_map(video_file, gyroscope_data:list, debug = False):
     logger.info("Preprocessing start")
     orientations = preprocess(video_file, gyroscope_data)
+    logger.info("Preprocessing is done successfully")
 
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\

@@ -3,6 +3,8 @@ import { api } from '../services/api';
 
 export const SUCCESS_MSG = 'Video uploaded successfully!'
 export const FAILURE_MSG = 'Upload failed.'
+const UNSYNCHED_SOURCES_MSG = 'Mappify was unable to process your video since it has'
+ 'some synchrinization probelms, try again with a longer video'
 
 const extractCsrfToken = (response) => {
     const cookies = response.headers.get('set-cookie');
@@ -41,6 +43,12 @@ export const usePipeline = () => {
     return csrfToken.current
   };
 
+  const alertStatusChange = (message, isError) => {
+      loggingFunction = isError ? console.error : console.log
+      loggingFunction(message)
+      setUploadStatus(message)
+  }
+
   const uploadVideo = async (uri, gyroscopeData) => {
     const fileType = uri.split('.').pop();
     formData = new FormData()
@@ -50,8 +58,6 @@ export const usePipeline = () => {
       name: `video.${fileType}`,
       type: `video/${fileType}`,
     });
-
-    // console.log("Gyroscope data" ,gyroscopeData.length)
     
     formData.append('gyroscopeData', JSON.stringify(gyroscopeData));
 
@@ -66,21 +72,18 @@ export const usePipeline = () => {
           setUploadProgress(progress);
         },
       });
-
-
+      const IS_ERROR = true
       if (response.status === 201) {
-        console.log(SUCCESS_MSG);
-      } else {
-        console.log(FAILURE_MSG);
+        alertStatusChange(SUCCESS_MSG, !IS_ERROR)
+      } else if (response.status = 422){
+        alertStatusChange(UNSYNCHED_SOURCES_MSG, IS_ERROR)
       }
-
-      setUploadStatus(SUCCESS_MSG);
-      console.log('Upload response:', response.data);
+      else {
+        alertStatusChange(FAILURE_MSG, IS_ERROR)
+      }
     } catch (error) {
-      setUploadStatus(FAILURE_MSG);
-      console.error('Error uploading video:', error);
+      alertStatusChange(FAILURE_MSG, IS_ERROR)
     }
   };
-
   return {uploadProgress, uploadStatus, uploadVideo, csrfToken };
 };

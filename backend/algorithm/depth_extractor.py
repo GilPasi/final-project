@@ -4,7 +4,7 @@ import os
 import pickle
 import numpy as np
 from PIL import Image
-from algorithm.utilities.administation import \
+from utilities.administation import \
     get_mappify_root_dir,\
     get_default_input_path,\
     ipc_file_path,\
@@ -12,7 +12,7 @@ from algorithm.utilities.administation import \
     list_directory_contents
 zoe_directory = os.path.join(get_mappify_root_dir(),"backend", "lib", "ZoeDepth")
 sys.path.append(zoe_directory)
-from algorithm.utilities.log_management import configure_logger
+from utilities.log_management import configure_logger
 
 from zoedepth.models.builder import build_model
 from zoedepth.utils.config import get_config
