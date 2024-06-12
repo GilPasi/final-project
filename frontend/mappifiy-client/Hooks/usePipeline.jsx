@@ -3,8 +3,7 @@ import { api } from '../services/api';
 
 export const SUCCESS_MSG = 'Video uploaded successfully!'
 export const FAILURE_MSG = 'Upload failed.'
-const UNSYNCHED_SOURCES_MSG = 'Mappify was unable to process your video since it has'
- 'some synchrinization probelms, try again with a longer video'
+const UNSYNCHED_SOURCES_MSG = 'Synchronization problem, try again with a longer video'
 
 const extractCsrfToken = (response) => {
     const cookies = response.headers.get('set-cookie');
@@ -60,30 +59,33 @@ export const usePipeline = () => {
     });
     
     formData.append('gyroscopeData', JSON.stringify(gyroscopeData));
+    const IS_ERROR = true
 
-    try {
-      const response = await api.post('/upload/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(progress);
-        },
-      });
-      const IS_ERROR = true
-      if (response.status === 201) {
-        alertStatusChange(SUCCESS_MSG, !IS_ERROR)
-      } else if (response.status = 422){
-        alertStatusChange(UNSYNCHED_SOURCES_MSG, IS_ERROR)
+    const response = await api.post('/upload/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-CSRF-TOKEN': csrfToken,
+      },
+      onUploadProgress: (progressEvent) => {
+        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(progress);
+      },
+    })
+      .then(response => {
+        if (response.status === 201) {
+          alertStatusChange(SUCCESS_MSG, !IS_ERROR)
+    }})
+    .catch(error => {
+      switch (error.response.status) {
+        case 422: 
+          alertStatusChange(UNSYNCHED_SOURCES_MSG, IS_ERROR)  
+          break;
+          
+        default:
+          alertStatusChange(FAILURE_MSG, IS_ERROR)  
       }
-      else {
-        alertStatusChange(FAILURE_MSG, IS_ERROR)
-      }
-    } catch (error) {
-      alertStatusChange(FAILURE_MSG, IS_ERROR)
-    }
-  };
+    })
+  }
+
   return {uploadProgress, uploadStatus, uploadVideo, csrfToken };
 };

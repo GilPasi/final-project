@@ -30,6 +30,9 @@ export default function useGyro(isRecording) {
     startTimer();
     setSubscription(
       Gyroscope.addListener((gyroscopeData) => {
+        console.log(`snapshot ${data.length}:`, gyroscopeData["x"].toFixed(2), gyroscopeData["y"].toFixed(2), gyroscopeData["z"].toFixed(2))
+        // console.log(`snapshot ${data.length}:`, Object.keys(data).forEach(key => `(${data[key]})`))
+
         setData((prevData) => [...prevData, gyroscopeData]);
       })
     );
@@ -54,7 +57,6 @@ export default function useGyro(isRecording) {
     const millisecondsInSecond = 1000;
     const frameInterval = millisecondsInSecond / getSmartPhoneFps();
     Gyroscope.setUpdateInterval(frameInterval);
-    // console.log('Gyro INTERVAL ', frameInterval);
 
     return () => _safeUnsubscribe();
   }, [_safeUnsubscribe]);

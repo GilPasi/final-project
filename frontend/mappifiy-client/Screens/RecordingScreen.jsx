@@ -77,18 +77,18 @@ export default function RecordingScreen() {
   }
 
   if (cam.videoUri ) {
-    return (<View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
-      {uploadStatus != SUCCESS_MSG && <ThemedButton
-        title="Send Video"
-        onPress={handleSend}
-        disabled={recordingSent}
-      />}
-      <Title text={uploadStatus} size={40} />
-      <View style={{...styles.loadingContainer}}>
-        <LoadingBar progress={uploadProgress} />
-      </View>
-    </View>)
-  }
+    return (
+      <View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
+        <Title text={uploadStatus} size={40} isError={uploadStatus !== SUCCESS_MSG}/>
+        <ThemedButton
+          title="Send Video"
+          onPress={handleSend}
+          disabled={recordingSent}
+        />
+        <View style={{...styles.loadingContainer}}>
+          <LoadingBar progress={uploadProgress} />
+        </View>
+      </View>)}
 
   else return (
     <View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
