@@ -1,11 +1,13 @@
 import cv2
+import numpy as np 
 
 from algorithm.utilities.image_utils import \
     take_video_snapshots,\
     take_gyroscope_snapshots,\
     processing_cleanup ,\
     save_pictures, \
-    in_memory_video_to_video_capture\
+    in_memory_video_to_video_capture,\
+    get_video_fps\
 
 from algorithm.utilities.administation import get_default_input_path
 from algorithm.exceptions.unsynced_crude_data_exception import UnsyncedCrudeDataException
@@ -13,8 +15,9 @@ from algorithm.utilities.log_management import configure_logger
 logger = configure_logger(log_to_console=True, log_level='DEBUG')
 
 def take_snapshots(video, gyroscope_data,snapshot_interval = 3 ):
-    visual_snapshots = take_video_snapshots(video, snapshot_interval)
-    gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval)
+    fps = get_video_fps(video)
+    visual_snapshots = take_video_snapshots(video, snapshot_interval, fps)
+    gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval, fps)
     return visual_snapshots, gyroscope_snapshots
 
 def straighten_gyroscope_data(video, gyroscope_data):
@@ -33,7 +36,7 @@ def straighten_gyroscope_data(video, gyroscope_data):
     
 
     if gyroscope_data_frame_count > video_frame_count: 
-        gyroscope_data_delta_from_video_frame_count= len(gyroscope_data) - video_frame_count
+        gyroscope_data_delta_from_video_frame_count = len(gyroscope_data) - video_frame_count
         prepared_gyroscope_data = gyroscope_data[gyroscope_data_delta_from_video_frame_count // 2 :
                                                 - gyroscope_data_delta_from_video_frame_count // 2]
 
@@ -50,7 +53,7 @@ def straighten_gyroscope_data(video, gyroscope_data):
 def preprocess(video_file, gyroscope_data:list,):
     processing_cleanup(get_default_input_path())
     video_instance = in_memory_video_to_video_capture(video_file)
-    # Straithen only the gyroscope since straightening the video is way more complex
+    # Straigthen only the gyroscope since straightening the video is way more complex
     # and anyway will be implemented in the client's proxy in the future.
     prepared_gyroscope_data  = straighten_gyroscope_data(video_instance, gyroscope_data)  
     visual_snapshots, gyroscope_snapshots = take_snapshots(video_instance, prepared_gyroscope_data)
@@ -60,7 +63,18 @@ def preprocess(video_file, gyroscope_data:list,):
 
 
 def _get_orientations(gyroscope_snapshots: list):
-    # Mockaup
-    # print ""
-    orientations = ['vertical'] * len(gyroscope_snapshots)
+    orientations = []
+    rotation_axis = [data_snapshot['y'] for data_snapshot in gyroscope_snapshots if 'y' in data_snapshot]
+    mean = np.mean(rotation_axis)
+    std = np.std(rotation_axis)
+
+
+    for value in rotation_axis:
+        if mean - std <= value <= mean + std:
+            orientations.append('forward')
+        elif 0 <= value < mean - std:
+            orientations.append('left')
+        elif value > mean + std:
+            orientations.append('right')
+    
     return orientations

@@ -44,19 +44,23 @@ def find_first_positive_row(matrix, threshhold):
     else: 
         raise DamagedSnapshotException(f"The given matrix has too little light pixels" )
 
-def glue_map(matrices, orientations):
+def glue_map(matrices: list, orientations:list):
     if len(matrices) != len(orientations):
-        raise ValueError(f"The number of matrices ({len(matrices)}) ",
+        raise ValueError(f"The number of matrices ({len(matrices)}) " + 
                          f"and orientations count ({len(orientations)}) must be the same.")
     
     result = matrices[0]
     for i in range(1, len(matrices)):
-        if orientations[i] == 'horizontal':
+        if orientations[i] == 'left':
             result = np.hstack((matrices[i], result))
-        elif orientations[i] == 'vertical':
+
+        elif orientations[i] == 'right':
+            result = np.hstack((result, matrices[i]))
+        
+        elif orientations[i] == 'forward':
             result = np.vstack((matrices[i], result))
         else:
-            raise ValueError("Invalid orientation. Use 'horizontal' or 'vertical'.")
+            raise ValueError("Invalid orientation. Use one of the following: 'forward', 'left', 'right' .")
     
     return result
 
@@ -103,27 +107,17 @@ def in_memory_video_to_video_capture(uploaded_file):
             raise ValueError("Could not open video file.")
     return video
 
+def get_video_fps(video: cv2.VideoCapture):
+    return int(video.get(cv2.CAP_PROP_FPS))
 
 
-def take_video_snapshots(video: cv2.VideoCapture, snapshot_interval:int):
-    """
-    Takes snapshots from an cv2.VideoCapture video instance.
-
-    Args:
-    video (cv2.VideoCapture): The uploaded video file instance.
-    snapshot_count (int): The number of snapshots to take.
-
-    Returns:
-    List of PIL.Image objects representing the snapshots.
-    """
+def take_video_snapshots(video: cv2.VideoCapture, snapshot_interval:int, fps: int):
     total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps = int(video.get(cv2.CAP_PROP_FPS))
-
     step_size = fps * snapshot_interval 
     snapshot_count = max(total_frames // step_size, 1) # At least one snapshot
 
     snapshots = []
-    for i in range(0, snapshot_count):
+    for i in range(0, snapshot_count + 1):
         frame_number = i * step_size
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         ret, frame = video.read()
@@ -136,8 +130,9 @@ def take_video_snapshots(video: cv2.VideoCapture, snapshot_interval:int):
     #IMPORTANT it is the user's responsibility to perform video.release() 
     return snapshots
 
-def take_gyroscope_snapshots(gyroscope_data:list, snapshot_interval:int):
-    return [{}]  # Mockup
+def take_gyroscope_snapshots(gyroscope_data:list, snapshot_interval:int, fps:int):
+    result = gyroscope_data[::(snapshot_interval * fps)]
+    return result
 
 def processing_cleanup(directory):
     if not os.path.exists(directory): 

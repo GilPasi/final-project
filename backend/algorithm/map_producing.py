@@ -111,7 +111,7 @@ def combine_analysis(dep_prediction, seg_prediction):
 
 def process_predictions(seg_prediction, dep_prediction):
     combined_prediction = combine_analysis(seg_prediction, dep_prediction)
-    cropped_preds = crop_prediction(combined_prediction)    
+    cropped_preds = crop_prediction(combined_prediction)   
     normal_results = multiple_normalize_object_width(cropped_preds)
     return normal_results
 
