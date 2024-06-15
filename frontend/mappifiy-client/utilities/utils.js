@@ -1,5 +1,5 @@
 
-const SERVER_IP = '10.0.0.2'
+const SERVER_IP = '10.0.0.5'
 
 export function getServerIp(){
     return SERVER_IP

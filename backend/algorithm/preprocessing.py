@@ -18,6 +18,7 @@ def take_snapshots(video, gyroscope_data,snapshot_interval = 3 ):
     fps = get_video_fps(video)
     visual_snapshots = take_video_snapshots(video, snapshot_interval, fps)
     gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval, fps)
+
     return visual_snapshots, gyroscope_snapshots
 
 def straighten_gyroscope_data(video, gyroscope_data):
@@ -26,7 +27,7 @@ def straighten_gyroscope_data(video, gyroscope_data):
     prepared_gyroscope_data = [] 
 
     logger.debug(f"Video frames count {video_frame_count}")
-    logger.debug(f"Video frames count {gyroscope_data_frame_count}")
+    logger.debug(f"Gyroscope frames count {gyroscope_data_frame_count}")
 
     DEVIATION_THRESHHOLD = 0.2 # If there is an unsynchronization of more than 20% raise an exception
     if not 1 - DEVIATION_THRESHHOLD <\
@@ -47,7 +48,6 @@ def straighten_gyroscope_data(video, gyroscope_data):
         first_cell = gyroscope_data[0]
         last_cell = gyroscope_data[-1]
         prepared_gyroscope_data = [first_cell] * left_padding + gyroscope_data + [last_cell] * right_padding
-    
     return prepared_gyroscope_data
 
 def preprocess(video_file, gyroscope_data:list,):
@@ -55,7 +55,7 @@ def preprocess(video_file, gyroscope_data:list,):
     video_instance = in_memory_video_to_video_capture(video_file)
     # Straigthen only the gyroscope since straightening the video is way more complex
     # and anyway will be implemented in the client's proxy in the future.
-    prepared_gyroscope_data  = straighten_gyroscope_data(video_instance, gyroscope_data)  
+    prepared_gyroscope_data = straighten_gyroscope_data(video_instance, gyroscope_data)  
     visual_snapshots, gyroscope_snapshots = take_snapshots(video_instance, prepared_gyroscope_data)
     video_instance.release()
     save_pictures(visual_snapshots,get_default_input_path())
@@ -68,13 +68,15 @@ def _get_orientations(gyroscope_snapshots: list):
     mean = np.mean(rotation_axis)
     std = np.std(rotation_axis)
 
-
     for value in rotation_axis:
         if mean - std <= value <= mean + std:
             orientations.append('forward')
-        elif 0 <= value < mean - std:
+        elif value < mean - std:
             orientations.append('left')
         elif value > mean + std:
             orientations.append('right')
-    
+        else:
+            raise Exception(
+                f"Something went wrong while calculating orientations. mean {mean}, std {std}, value {value}")
+        
     return orientations
