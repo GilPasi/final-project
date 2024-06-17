@@ -59,9 +59,9 @@ def glue_map(matrices: list, positions: np.ndarray):
         be consumed by human eye.
 
         Parameters:
-        matrices    (list): list of np.ndarray representing snapshots where matrices[*].ndim == 2
-        positions   (np.ndarray): representation of the map, positions[*].ndim == 2. 
-            Each cell contains either None or a tuple in the form: 
+        matrices    (list): List of np.ndarray representing snapshots where matrices[*].ndim == 2
+        positions   (np.ndarray): Representation of the map, positions[*].ndim == 2. 
+            Each cell contains either None/0  or a tuple in the form: 
             (<index:int>, <rotations90:int>) where 'index' is the index to the corresponding
             matrix in matrices and rotations90 is how many times should the matrix be rotated.
 
@@ -75,7 +75,7 @@ def glue_map(matrices: list, positions: np.ndarray):
     for row in positions:
         current_row_result = None
         for cell in row: 
-            if cell is None:
+            if cell is None or cell == 0:
                 current_snippet = blank_tile
             else:
                 index, rotations90 = cell
@@ -86,8 +86,8 @@ def glue_map(matrices: list, positions: np.ndarray):
                                   np.hstack((current_row_result, current_snippet)))
             
         result = (current_row_result if 
-                        result is None else 
-                        np.hstack((result, current_row_result))) 
+                    result is None else 
+                    np.vstack((result, current_row_result))) 
     return result
 
 def smart_crop(matrix_to_crop: np.array):
