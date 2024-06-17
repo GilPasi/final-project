@@ -2,7 +2,7 @@ import { StyleSheet, Text } from "react-native";
 import {TouchableOpacity} from 'react-native'
 import theme from "./StaticStyle"
 
-function ThemedButton({title, buttonStyle, textStyle, onPress, size}) {
+function ThemedButton({title, buttonStyle, textStyle, onPress, size, disabled}) {
   
   const getSizes = () => {
     let _fontSize = 0
@@ -28,8 +28,8 @@ function ThemedButton({title, buttonStyle, textStyle, onPress, size}) {
     <TouchableOpacity 
           style={ {...styles.container, width:_width}}
           onPress = {onPress} 
+          disabled={disabled}
     >
-
       <Text style={{...styles.text, fontSize: _fontSize}}> 
         {title}
       </Text>

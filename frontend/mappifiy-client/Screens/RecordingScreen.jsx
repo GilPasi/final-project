@@ -12,6 +12,7 @@ import theme from '../Components/StaticStyle';
 
 export default function RecordingScreen() {
   const [isRecording, setIsRecording] = useState(false)
+  const [recordingSent ,setRecordingSent] = useState(false) 
   const { uploadProgress, uploadStatus, uploadVideo, csrfToken } = usePipeline()
   const cam = useCam(isRecording)
   const gyro = useGyro(isRecording)
@@ -23,19 +24,33 @@ export default function RecordingScreen() {
 
   function toggleRecord() {
     if (isRecording) {
-      console.log("Recording stopped")
-      gyro.stopRecording()
-      cam.stopRecording()
-      setIsRecording(false)
+      handleStop()
     }
     else {
-      console.log("Recording started")
-      gyro.startRecording()
-      cam.startRecording()
-      setIsRecording(true)
+        handleRecord()
     }
   }
 
+  const handleStop = () => {
+    // console.log("Recording stopped")
+    gyro.stopRecording()
+    cam.stopRecording()
+    setIsRecording(false)
+  }
+
+  const handleSend = () => {
+    setRecordingSent(true)
+    uploadVideo(cam.videoUri, gyro.data)
+  }
+
+
+  const handleRecord = async () => {
+    setIsRecording(true);
+    await Promise.all([gyro.isReady(), cam.isReady()])
+    gyro.startRecording()
+    cam.startRecording()
+  };
+  
   if (!cam.cameraPermission || !cam.microphonePermission) {
     return <View />;
   }
@@ -62,17 +77,18 @@ export default function RecordingScreen() {
   }
 
   if (cam.videoUri ) {
-    return (<View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
-      {uploadStatus != SUCCESS_MSG && <ThemedButton
-        title="Send Video"
-        onPress={() => uploadVideo(cam.videoUri, gyro.data)}
-      />}
-      <Title text={uploadStatus} size={40} />
-      <View style={{...styles.loadingContainer}}>
-        <LoadingBar progress={uploadProgress} />
-      </View>
-    </View>)
-  }
+    return (
+      <View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>
+        <Title text={uploadStatus} size={40} isError={uploadStatus !== SUCCESS_MSG}/>
+        <ThemedButton
+          title="Send Video"
+          onPress={handleSend}
+          disabled={recordingSent}
+        />
+        <View style={{...styles.loadingContainer}}>
+          <LoadingBar progress={uploadProgress} />
+        </View>
+      </View>)}
 
   else return (
     <View style={{ ...styles.container, alignItems: cam.videoUri ? 'center' : 'left' }}>

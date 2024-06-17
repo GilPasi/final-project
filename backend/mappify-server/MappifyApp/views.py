@@ -6,8 +6,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import VideoForm
 from .models import Video
-# import cv2
-# Create your views here.
+
 
 def upload_video(request):
     print("Entering upload_video view")

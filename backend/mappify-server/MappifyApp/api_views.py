@@ -1,6 +1,5 @@
 from django.middleware.csrf import get_token
 from django.http import FileResponse, Http404, JsonResponse
-from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,9 +11,14 @@ import os
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, '..','..',))
+sys.path.append(parent_dir)
+
+from django.conf import settings
 
 sys.path.append(parent_dir)
 from algorithm.map_producing import produce_map
+from algorithm.utilities.image_utils import save_map
+from algorithm.exceptions.unsynced_crude_data_exception import UnsyncedCrudeDataException
 
 class UploadVideoAPIView(APIView):
     def get(self, request, *args, **kwargs):
@@ -25,8 +29,17 @@ class UploadVideoAPIView(APIView):
 
     def get_csrf_token(self, request):
         csrf_token = get_token(request)
-        print(f"CSRF Token: {csrf_token}")
+        ip = self._get_client_ip(request)
+        print(f"CSRF Token granted to {ip}")
         return Response({'csrfToken': csrf_token})
+    
+    def _get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
     
     def post(self, request, *args, **kwargs):
         if self.request.path.endswith('upload/'):
@@ -35,14 +48,22 @@ class UploadVideoAPIView(APIView):
             return Response({'error': 'Not Found'}, status=status.HTTP_404_NOT_FOUND)
     
     def upload_map_data(self, request, *args, **kwargs):
-        adaptedGyroData = [json.loads(request.data['gyroscopeData'])]
-        request.data['gyroscopeData'] = adaptedGyroData 
+        adapted_gyro_data = json.loads(request.data['gyroscopeData'])
+        request.data['gyroscopeData'] = adapted_gyro_data 
+        map_name = "1.jpg"
 
         serializer = VideoUploadSerializer(data=request.data)
         if serializer.is_valid():
             video = serializer.validated_data['video']
-            produce_map(video)
-
+            try:
+                map = produce_map(video, adapted_gyro_data)
+            except UnsyncedCrudeDataException as ex: 
+                return Response(
+                    {'message': 'Video\'s data sources are dramatically unsynced, upload failed.', 
+                     
+                     },
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            save_map(map, map_name)
 
             # input_dir = os.path.join('media', 'videos')
             # os.makedirs(input_dir, exist_ok=True)
@@ -60,15 +81,10 @@ class UploadVideoAPIView(APIView):
 class ImageView(APIView):
 
     def get(self, request, image_name, format=None):
-        print("1")
         if request.path.endswith('all/'):
-            print("2")
             return self.get_all_maps_names()
         else:
-            print("3")
             return self.get_map(image_name)
-
-
 
     def get_map(self, image_name):
         image_path = os.path.join(settings.MEDIA_ROOT, 'maps', image_name)

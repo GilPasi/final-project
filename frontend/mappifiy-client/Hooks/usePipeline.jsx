@@ -3,6 +3,7 @@ import { api } from '../services/api';
 
 export const SUCCESS_MSG = 'Video uploaded successfully!'
 export const FAILURE_MSG = 'Upload failed.'
+const UNSYNCHED_SOURCES_MSG = 'Synchronization problem, try again with a longer video'
 
 const extractCsrfToken = (response) => {
     const cookies = response.headers.get('set-cookie');
@@ -41,15 +42,15 @@ export const usePipeline = () => {
     return csrfToken.current
   };
 
-  const uploadVideo = async (uriObj, gyroscopeData) => {
-    const uri = uriObj.uri;
+  const alertStatusChange = (message, isError) => {
+      loggingFunction = isError ? console.error : console.log
+      loggingFunction(message)
+      setUploadStatus(message)
+  }
+
+  const uploadVideo = async (uri, gyroscopeData) => {
     const fileType = uri.split('.').pop();
     formData = new FormData()
-    const gyroscopeData1 = [
-      {x: 1.5, y: 3.14, z: 55.875},
-      {x: 1.5, y: 3.5, z: 55.875},
-      {x: 2.5, y: 5.14, z: 55.55},
-    ];
     
     formData.append('video', {
       uri,
@@ -57,34 +58,34 @@ export const usePipeline = () => {
       type: `video/${fileType}`,
     });
     
-    formData.append('gyroscopeData', JSON.stringify(gyroscopeData1));
+    formData.append('gyroscopeData', JSON.stringify(gyroscopeData));
+    const IS_ERROR = true
 
-    try {
-      const response = await api.post('/upload/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(progress);
-        },
-      });
-
-
-      if (response.status === 201) {
-        console.log(SUCCESS_MSG);
-      } else {
-        console.log(FAILURE_MSG);
+    const response = await api.post('/upload/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-CSRF-TOKEN': csrfToken,
+      },
+      onUploadProgress: (progressEvent) => {
+        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(progress);
+      },
+    })
+      .then(response => {
+        if (response.status === 201) {
+          alertStatusChange(SUCCESS_MSG, !IS_ERROR)
+    }})
+    .catch(error => {
+      switch (error.response.status) {
+        case 422: 
+          alertStatusChange(UNSYNCHED_SOURCES_MSG, IS_ERROR)  
+          break;
+          
+        default:
+          alertStatusChange(FAILURE_MSG, IS_ERROR)  
       }
-
-      setUploadStatus(SUCCESS_MSG);
-      console.log('Upload response:', response.data);
-    } catch (error) {
-      setUploadStatus(FAILURE_MSG);
-      console.error('Error uploading video:', error);
-    }
-  };
+    })
+  }
 
   return {uploadProgress, uploadStatus, uploadVideo, csrfToken };
 };

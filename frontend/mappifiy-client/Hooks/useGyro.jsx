@@ -1,41 +1,74 @@
-
 import { Gyroscope } from 'expo-sensors';
-import { useState, useEffect } from 'react';
-import {getSmartPhoneFps} from '../utilities/utils'
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { getSmartPhoneFps } from '../utilities/utils';
 
 export default function useGyro(isRecording) {
-  const [data, setData] = useState([{
-    x: 0,
-    y: 0,
-    z: 0,
-  }]);
-  
+  const [data, setData] = useState([]);
   const [subscription, setSubscription] = useState(null);
+  const timerId = useRef(null);
+  const startTime = useRef(null);
+  const [timeElapsed, setTimeElapsed] = useState(0);
 
-  const startRecording = () => {
-    setData([])
+  const startTimer = useCallback(() => {
+    if (timerId.current === null) {
+      startTime.current = Date.now();
+      timerId.current = setInterval(() => {
+        setTimeElapsed(Date.now() - startTime.current);
+      }, 1000);
+    }
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerId.current !== null) {
+      clearInterval(timerId.current);
+      timerId.current = null;
+    }
+  }, []);
+
+  const startRecording = useCallback(() => {
+    setData([]);
+    startTimer();
     setSubscription(
-      Gyroscope.addListener(gyroscopeData => {
-        setData(prevData=> [...prevData, gyroscopeData]);
+      Gyroscope.addListener((gyroscopeData) => {
+        console.debug(`snapshot ${data.length}:`, gyroscopeData["x"].toFixed(2), gyroscopeData["y"].toFixed(2), gyroscopeData["z"].toFixed(2))
+        // console.log(`snapshot ${data.length}:`, Object.keys(data).forEach(key => `(${data[key]})`))
+
+        setData((prevData) => [...prevData, gyroscopeData]);
       })
     );
-  };
+  }, [startTimer]);
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
+    _safeUnsubscribe();
+    stopTimer();
+    endTime = Date.now()
+    console.log(`Gyroscope start time \t ${startTime.current} `,
+      `|\t end time ${endTime} |\t delta ${ endTime - startTime.current} `)
+  }, [stopTimer]);
+
+  const _safeUnsubscribe = useCallback(() => {
     if (!isRecording && subscription) {
       subscription.remove();
       setSubscription(null);
-      console.log("Gyroscope data collected: ", data.slice(0, 2), "\n...")
     }
-  };
-  
+  }, [subscription, data]);
 
   useEffect(() => {
-    startRecording();
-    const milisecondsInSecond = 1000 
-    Gyroscope.setUpdateInterval(milisecondsInSecond / getSmartPhoneFps())
-    return () => stopRecording();
-  }, []);
+    const millisecondsInSecond = 1000;
+    const frameInterval = millisecondsInSecond / getSmartPhoneFps();
+    Gyroscope.setUpdateInterval(frameInterval);
 
-  return {data, startRecording, stopRecording};
+    return () => _safeUnsubscribe();
+  }, [_safeUnsubscribe]);
+
+  const isReady = () => new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (Gyroscope) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 100);
+  });
+
+  return { data, startRecording, stopRecording, timeElapsed, isReady };
 }

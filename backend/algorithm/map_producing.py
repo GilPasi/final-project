@@ -1,4 +1,3 @@
-
 import os 
 import numpy as np 
 import pickle
@@ -6,22 +5,28 @@ import subprocess
 import matplotlib.pyplot as plt
 import threading
 import queue
+import sys 
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, '..',))
+sys.path.append(parent_dir)
 
 from PIL import Image
 from algorithm.width_estimating import multiple_normalize_object_width
-from algorithm.utils import \
+from algorithm.utilities.administation import \
     get_algorithm_dir,\
     ipc_file_path,\
-    SNAPSHOT_SIZE,\
-    get_default_input_path,\
-    get_default_output_path
+    SNAPSHOT_SIZE\
 
-from algorithm.image_utils import \
+from algorithm.utilities.image_utils import \
     glue_map,\
     crop_prediction,\
-    take_video_snapshots,\
-    processing_cleanup ,\
-    save_pictures \
+    multiple_square_matrix\
+    
+from algorithm.preprocessing import preprocess
+    
+from algorithm.utilities.log_management import configure_logger
+logger = configure_logger(log_to_console=True, log_level='DEBUG')
 
 def get_predictions():
     segmentor_script_path = os.path.join(get_algorithm_dir(), "segmentor.py")
@@ -53,6 +58,7 @@ def get_predictions():
 
 
 def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
+    logger.info(f"smart prediction with {env_name}")
     command = f"conda run -n {env_name} python {script_path}"
     process = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
     if process.returncode != 0:
@@ -60,6 +66,7 @@ def predict_with_venv(script_path: str, env_name: str, output_queue: queue):
     else:
         with open(ipc_file_path(env_name), 'rb') as file:
             prediction = pickle.load(file)
+            logger.info("Data loaded from IPC successfully")
         os.remove(ipc_file_path(env_name))
         output_queue.put(prediction)
     
@@ -100,58 +107,34 @@ def _present_image(array_to_plot: np.ndarray, array_name:str = "Image"):
     plt.title(array_name)
     plt.show()
     
-def _get_orientations():
-    # Mockaup
-    path = get_default_input_path()
-    number_of_images = _count_items_in_path(path)
-    orientations = ['vertical'] * number_of_images
-
-    return orientations
-
-def _count_items_in_path(path):
-    try:
-        items = os.listdir(path)
-        return len(items)
-    except Exception:
-        return 0
-
 def combine_analysis(dep_prediction, seg_prediction):
     return dep_prediction * seg_prediction
 
 def process_predictions(seg_prediction, dep_prediction):
     combined_prediction = combine_analysis(seg_prediction, dep_prediction)
-    cropped_preds = crop_prediction(combined_prediction)    
-    normal_results = multiple_normalize_object_width(cropped_preds)
+    cropped_preds = crop_prediction(combined_prediction)   
+    normal_preds  = multiple_normalize_object_width(cropped_preds)
+    processed_results = multiple_square_matrix(normal_preds)
+    return processed_results, normal_preds
 
-    return normal_results
-
-def save_map(map):
-    map_image = Image.fromarray(map)
-    map_image = map_image.convert("RGB")
-    save_path = os.path.join(get_default_output_path(), "1.jpg")
-    map_image.save(save_path)
-
-def produce_map(video, debug = False):
-    processing_cleanup(get_default_input_path())
-    snapshots = take_video_snapshots(video)
-    save_pictures(snapshots,get_default_input_path())
+def produce_map(video_file, gyroscope_data:list, debug = False):
+    logger.info("Preprocessing start")
+    positions = preprocess(video_file, gyroscope_data) # TODO: implement positions
+    logger.info("Start predicting")
 
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
-    processed_output = process_predictions(seg_prediction, dep_prediction)
+    processed_output, rec_processed_output = process_predictions(seg_prediction, dep_prediction)
 
-    map = glue_map(processed_output, _get_orientations())
-    save_map(map)
-
+    logger.info("Glueing snapshots")
+    map = glue_map(processed_output, positions)
     if debug:
-        _present_image(map)
-        input("Press enter\n")
+        try: # Do not let a mis-configuration make make the server collapse
+            _present_image(map)
+            input("Press enter\n")
+        except:
+            logger.error("Was not able to preview the results,"
+                          "try to operate map_producing with no server on")
 
     return map
-
-
-
-    
-
-
