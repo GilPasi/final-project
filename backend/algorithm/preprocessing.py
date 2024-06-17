@@ -74,22 +74,29 @@ def preprocess(video_file, gyroscope_data:list,):
 
 def _get_positions(gyroscope_snapshots: list):
     rotation_axis = _extract_rotation_axis(gyroscope_snapshots)
+    logger.debug(f"Original rotation axis {rotation_axis}")
     directions, directions_count = _evaluate_directions(rotation_axis)
+    logger.debug(f"Found directions (N = 0, E = 1, S = 2, W = 3 ) {directions}, directions count {directions_count}")
     map_shape = _calculate_map_shape(directions_count)
-    result = np.zeros(map_shape)
-    current_x, current_y = map_shape[0] // 2, map_shape[1] // 2 # Exact middle
+    result = np.zeros(map_shape, dtype=object)
+    logger.debug(f"Positions matrix created with shape {result.shape}")
+    current_x, current_y = map_shape[1] // 2, map_shape[0] // 2 # Exact middle
 
     for idx, direction in enumerate(directions):
-        result[current_y][current_x] = (idx, direction)
-        current_x, current_y = _evaluate_new_position()
+        try:
+            result[current_y, current_x] = (idx, direction)
+            current_x, current_y = _evaluate_new_position(current_x, current_y, direction)
+        except Exception as ex: 
+            logger.debug(f"Current x|y : {current_x}|{current_y}.")
+            raise ex
 
     return result         
 
 def _evaluate_new_position(x :int, y: int, direction: float):
     
-    if direction == NORTH: y += 1 
+    if direction == NORTH: y -= 1 
     elif direction == EAST: x += 1
-    elif direction == SOUTH: y -= 1 
+    elif direction == SOUTH: y += 1 
     elif direction == WEST: x -= 1
 
     return x,y
@@ -111,7 +118,7 @@ def _extract_rotation_axis(gyroscope_data:list):
 
 def _evaluate_directions(gyroscope_rotations: list):
     current_direction = NORTH
-    directions_count = (0,0,0,0) # (North, East, South, West)
+    directions_count = [0,0,0,0] # (North, East, South, West)
     result = [] 
 
     for rot_value in gyroscope_rotations: 
@@ -122,11 +129,14 @@ def _evaluate_directions(gyroscope_rotations: list):
     return result, directions_count
 
 def _evaluate_new_facing(current_facing, rot_value):
-        rotation_threshhold = 1 
-        if rot_value < -rotation_threshhold:
-            current_facing -= 1
-        elif rot_value > rotation_threshhold:
-            current_facing += 1
+    FULL_CYCLE = 4 
+    rotation_threshhold = 1 
+    if rot_value < -rotation_threshhold:
+        current_facing += 1
+    elif rot_value > rotation_threshhold:
+        current_facing -= 1
+    return current_facing % FULL_CYCLE
+        
 
 def _calculate_map_shape(directions_count :tuple):
     """"
@@ -138,8 +148,8 @@ def _calculate_map_shape(directions_count :tuple):
     It is important to ensure an odd width and height so the exact middle can be found easily.
 
     Parameters:     
-    directions_count    (tuple): Tuple that represent the count of each direction evaluated in the previous
-        step.Should be in a form (<north: int>, <east: int>, <south: int>, <west: int>).
+    directions_count    (list): List that represent the count of each direction evaluated in the previous
+        step.Should be in a form [<north: int>, <east: int>, <south: int>, <west: int>].
 
     Returns: 
     result              (tuple): Tuple with minmal width and height if the map.
@@ -153,7 +163,7 @@ def _calculate_map_shape(directions_count :tuple):
     height += (height + 1 ) % 2
     width += (width + 1 ) % 2
 
-    return width, height
+    return height, width
 
 
      

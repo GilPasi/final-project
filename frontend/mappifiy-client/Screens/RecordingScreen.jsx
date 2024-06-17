@@ -83,7 +83,7 @@ export default function RecordingScreen() {
         <ThemedButton
           title="Send Video"
           onPress={handleSend}
-          disabled={recordingSent}
+          // disabled={recordingSent}
         />
         <View style={{...styles.loadingContainer}}>
           <LoadingBar progress={uploadProgress} />
