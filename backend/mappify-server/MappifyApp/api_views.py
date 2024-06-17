@@ -65,7 +65,6 @@ class UploadVideoAPIView(APIView):
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY)
             save_map(map, map_name)
 
-
             # input_dir = os.path.join('media', 'videos')
             # os.makedirs(input_dir, exist_ok=True)
             # video_path = os.path.join(input_dir, video.name)

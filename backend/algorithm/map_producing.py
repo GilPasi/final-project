@@ -20,7 +20,8 @@ from algorithm.utilities.administation import \
 
 from algorithm.utilities.image_utils import \
     glue_map,\
-    crop_prediction\
+    crop_prediction,\
+    multiple_square_matrix\
     
 from algorithm.preprocessing import preprocess
     
@@ -112,21 +113,22 @@ def combine_analysis(dep_prediction, seg_prediction):
 def process_predictions(seg_prediction, dep_prediction):
     combined_prediction = combine_analysis(seg_prediction, dep_prediction)
     cropped_preds = crop_prediction(combined_prediction)   
-    normal_results = multiple_normalize_object_width(cropped_preds)
-    return normal_results
+    normal_preds  = multiple_normalize_object_width(cropped_preds)
+    processed_results = multiple_square_matrix(normal_preds)
+    return processed_results, normal_preds
 
 def produce_map(video_file, gyroscope_data:list, debug = False):
     logger.info("Preprocessing start")
-    orientations = preprocess(video_file, gyroscope_data)
+    positions = preprocess(video_file, gyroscope_data) # TODO: implement positions
     logger.info("Start predicting")
 
     seg_prediction, dep_prediction = get_predictions()
     assert np.shape(seg_prediction) == np.shape(dep_prediction),\
         f"seg shape {np.shape(seg_prediction)} is different than dep shape {np.shape(dep_prediction)}"
-    processed_output = process_predictions(seg_prediction, dep_prediction)
+    processed_output, rec_processed_output = process_predictions(seg_prediction, dep_prediction)
 
     logger.info("Glueing snapshots")
-    map = glue_map(processed_output, orientations)
+    map = glue_map(processed_output, positions)
     if debug:
         try: # Do not let a mis-configuration make make the server collapse
             _present_image(map)

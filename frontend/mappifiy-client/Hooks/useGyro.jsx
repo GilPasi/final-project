@@ -30,7 +30,7 @@ export default function useGyro(isRecording) {
     startTimer();
     setSubscription(
       Gyroscope.addListener((gyroscopeData) => {
-        console.log(`snapshot ${data.length}:`, gyroscopeData["x"].toFixed(2), gyroscopeData["y"].toFixed(2), gyroscopeData["z"].toFixed(2))
+        console.debug(`snapshot ${data.length}:`, gyroscopeData["x"].toFixed(2), gyroscopeData["y"].toFixed(2), gyroscopeData["z"].toFixed(2))
         // console.log(`snapshot ${data.length}:`, Object.keys(data).forEach(key => `(${data[key]})`))
 
         setData((prevData) => [...prevData, gyroscopeData]);

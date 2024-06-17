@@ -53,35 +53,42 @@ def pad_matrix(matrix, target_shape, orientation):
     
     return np.pad(matrix, pad_width, mode='constant')
 
-def glue_map(matrices: list, orientations: list):
-    if len(matrices) != len(orientations):
-        raise ValueError(f"The number of matrices ({len(matrices)}) " + 
-                         f"and orientations count ({len(orientations)}) must be the same.")
-    
-    result = matrices[0]
-    for i in range(1, len(matrices)):
-        if orientations[i] == 'left':
-            target_shape = (result.shape[0], result.shape[1] + matrices[i].shape[1])
-            padded_matrix = pad_matrix(matrices[i], target_shape, 'left')
-            padded_result = pad_matrix(result, target_shape, 'right')
-            result = np.hstack((padded_matrix, padded_result))
+def glue_map(matrices: list, positions: np.ndarray):
+    """ 
+        Glue together pieces of the map to create one coherent object that can 
+        be consumed by human eye.
 
-        elif orientations[i] == 'right':
-            target_shape = (result.shape[0], result.shape[1] + matrices[i].shape[1])
-            padded_matrix = pad_matrix(matrices[i], target_shape, 'right')
-            padded_result = pad_matrix(result, target_shape, 'right')
-            result = np.hstack((padded_result, padded_matrix))
+        Parameters:
+        matrices    (list): list of np.ndarray representing snapshots where matrices[*].ndim == 2
+        positions   (np.ndarray): representation of the map, positions[*].ndim == 2. 
+            Each cell contains either None or a tuple in the form: 
+            (<index:int>, <rotations90:int>) where 'index' is the index to the corresponding
+            matrix in matrices and rotations90 is how many times should the matrix be rotated.
 
-        elif orientations[i] == 'forward':
-            target_shape = (result.shape[0] + matrices[i].shape[0], result.shape[1])
-            padded_matrix = pad_matrix(matrices[i], target_shape, 'forward')
-            padded_result = pad_matrix(result, target_shape, 'forward')
-            result = np.vstack((padded_matrix, padded_result))
-        else:
-            raise ValueError("Invalid orientation. Use one of the following: 'forward', 'left', 'right' .")
-    
+        Returns: 
+        result  (np.ndarray): Glued result representation where result.ndim == 2 
+    """
+
+    blank_tile = np.zeros((slice_size(),slice_size()))
+    result = None
+
+    for row in positions:
+        current_row_result = None
+        for cell in row: 
+            if cell is None:
+                current_snippet = blank_tile
+            else:
+                index, rotations90 = cell
+                current_snippet = np.rot90(matrices[index], k=rotations90)
+            
+            current_row_result = (current_snippet if 
+                                  current_row_result is None else 
+                                  np.hstack((current_row_result, current_snippet)))
+            
+        result = (current_row_result if 
+                        result is None else 
+                        np.hstack((result, current_row_result))) 
     return result
-
 
 def smart_crop(matrix_to_crop: np.array):
     first_line_with_positive_cell = find_first_positive_row(matrix_to_crop, MINIMUM_LIGHT_PIXELS_IN_LINE)
@@ -106,8 +113,7 @@ def crop_prediction(prediction: np.ndarray):
     for image_path, prediction in zip(all_images_paths, prediction):
         try:
             cropped_matrix = np.copy(smart_crop(prediction))
-            square_matrix = crop_to_square(cropped_matrix)
-            cropped_matrices.append(square_matrix)
+            cropped_matrices.append(cropped_matrix)
         except DamagedSnapshotException:
             logger.error(f"Image {image_path} was damaged, not enough light pixels")
             raise DamagedSnapshotException("Error: the given video is has too some problematic shots and, re-take the video")
@@ -115,7 +121,7 @@ def crop_prediction(prediction: np.ndarray):
     return cropped_matrices
 
 
-def crop_to_square(rectangle_to_crop):
+def square_matrix(rectangle_to_crop):
     x, y = rectangle_to_crop.shape
     if y < x:
         raise ValueError(f"Matrix width must be at least equal to its height, but got shape {rectangle_to_crop.shape}")
@@ -125,6 +131,9 @@ def crop_to_square(rectangle_to_crop):
     square_result = rectangle_to_crop[:, crop_amount:crop_amount + x]
     
     return square_result
+
+def multiple_square_matrix(matrices: list):
+    return [square_matrix(matrix) for matrix in matrices] 
 
 def in_memory_video_to_video_capture(uploaded_file):
     with NamedTemporaryFile(delete=True, suffix='.mp4') as temp_file:
@@ -159,15 +168,12 @@ def take_video_snapshots(video: cv2.VideoCapture, snapshot_interval:int, fps: in
             snapshots.append(frame_pil)
         else:
             break
-    print("VID result", len(snapshots))
     #IMPORTANT it is the user's responsibility to perform video.release() 
     return snapshots
 
 def take_gyroscope_snapshots(gyroscope_data:list, snapshot_interval:int, fps:int):
-
     result = gyroscope_data[::(snapshot_interval * fps)]
-    print("GYR total frames, ", len(gyroscope_data), " step size ", snapshot_interval * fps, "snapshot_count " , len(result))
-
+    logger.debug(f"Gyroscope data before snapping ({len(result)}) and after snapping ({len(gyroscope_data)})")
     return result
 
 def processing_cleanup(directory):
@@ -178,12 +184,12 @@ def processing_cleanup(directory):
             file_path = os.path.join(directory, filename)
             if os.path.isfile(file_path) or os.path.islink(file_path):
                 os.unlink(file_path)
-                print(f"Removed file: {file_path}")
+                logger.info(f"Removed file: {file_path}")
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
-                print(f"Removed directory and its contents: {file_path}")
+                logger.info(f"Removed directory and its contents: {file_path}")
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error: {e}")
 
 def save_pictures(snapshots:list, input_dir:str):
     for idx, snapshot in enumerate(snapshots):
