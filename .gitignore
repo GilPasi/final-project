@@ -3,3 +3,5 @@
 .vscode
 input/
 maps/
+.venv
+.venv/*
