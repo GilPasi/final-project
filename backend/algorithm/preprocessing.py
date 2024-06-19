@@ -11,6 +11,7 @@ from algorithm.utilities.image_utils import \
 
 from algorithm.utilities.administation import get_default_input_path
 from algorithm.exceptions.unsynced_crude_data_exception import UnsyncedCrudeDataException
+from algorithm.exceptions.no_gyroscope_data_exception import NoGyroscopeDataException
 from algorithm.utilities.log_management import configure_logger
 logger = configure_logger(log_to_console=True, log_level='DEBUG')
 
@@ -21,25 +22,15 @@ def take_snapshots(video, gyroscope_data,snapshot_interval = 1):
     visual_snapshots = take_video_snapshots(video, snapshot_interval, fps)
     gyroscope_snapshots = take_gyroscope_snapshots(gyroscope_data, snapshot_interval, fps)
     if len(visual_snapshots) != len(gyroscope_snapshots) : 
-        raise Exception("Unsuccessful snapshooting, video snapshots\
-                        length {len(visual_snapshots)}, gyroscope snapshots\
-                         length {len(gyroscope_snapshots)}")
+        raise Exception(f"Unsuccessful snapshooting, video snapshots "
+                        f"length {len(visual_snapshots)}, gyroscope snapshots "
+                        f"length {len(gyroscope_snapshots)}")
     return visual_snapshots, gyroscope_snapshots
 
 def straighten_gyroscope_data(video, gyroscope_data):
     video_frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     gyroscope_data_frame_count = len(gyroscope_data)
     prepared_gyroscope_data = [] 
-
-    logger.debug(f"Video frames count {video_frame_count}")
-    logger.debug(f"Gyroscope frames count {gyroscope_data_frame_count}")
-
-    DEVIATION_THRESHHOLD = 0.2 # If there is an unsynchronization of more than 20% raise an exception
-    if not 1 - DEVIATION_THRESHHOLD <\
-          gyroscope_data_frame_count / video_frame_count < 1 + DEVIATION_THRESHHOLD :
-        raise UnsyncedCrudeDataException(DEVIATION_THRESHHOLD, None,
-            ("video" ,video_frame_count),("gyroscope data", gyroscope_data_frame_count) )
-    
 
     if gyroscope_data_frame_count > video_frame_count: 
         gyroscope_data_delta_from_video_frame_count = len(gyroscope_data) - video_frame_count
@@ -61,17 +52,6 @@ EAST = 1
 SOUTH = 2
 WEST = 3 
 
-def preprocess(video_file, gyroscope_data:list,):
-    processing_cleanup(get_default_input_path())
-    video_instance = in_memory_video_to_video_capture(video_file)
-    # Straigthen only the gyroscope since straightening the video is way more complex
-    # and anyway will be implemented in the client's proxy in the future.
-    prepared_gyroscope_data = straighten_gyroscope_data(video_instance, gyroscope_data)  
-    visual_snapshots, gyroscope_snapshots = take_snapshots(video_instance, prepared_gyroscope_data)
-    video_instance.release()
-    save_pictures(visual_snapshots, get_default_input_path())
-    return _get_positions(gyroscope_snapshots)
-
 def _get_positions(gyroscope_snapshots: list):
     rotation_axis = _extract_rotation_axis(gyroscope_snapshots)
     logger.debug(f"Original rotation axis {rotation_axis}")
@@ -80,7 +60,7 @@ def _get_positions(gyroscope_snapshots: list):
     map_shape = _calculate_map_shape(directions_count)
     result = np.zeros(map_shape, dtype=object)
     logger.debug(f"Positions matrix created with shape {result.shape}")
-    current_x, current_y = map_shape[1] // 2, map_shape[0] // 2 # Exact middle
+    current_x, current_y = (map_shape[1] // 2 ), (map_shape[0] // 2) # Exact middle
 
     for idx, direction in enumerate(directions):
         try:
@@ -159,12 +139,42 @@ def _calculate_map_shape(directions_count :tuple):
     SAFETY_MULTIPLIER = 2 
     height = max(directions_count[NORTH], directions_count[SOUTH]) * SAFETY_MULTIPLIER
     width = max(directions_count[EAST], directions_count[WEST]) * SAFETY_MULTIPLIER
+    # Ensure none zero size
+    height = max(height, 1)
+    width = max(width, 1)
     # Ensure odd: 
-    height += (height + 1 ) % 2
-    width += (width + 1 ) % 2
+    # height += (height + 1 ) % 2
+    # width += (width + 1 ) % 2
 
     return height, width
 
+def _refer_possible_crude_data_bugs(video, gyroscope_vector):
+    if gyroscope_vector is None or len(gyroscope_vector) == 0:
+        raise NoGyroscopeDataException()
+    
+    video_frame_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    gyroscope_data_frame_count = len(gyroscope_vector)
+    prepared_gyroscope_data = [] 
 
-     
+    logger.debug(f"Video frames count {video_frame_count}")
+    logger.debug(f"Gyroscope frames count {gyroscope_data_frame_count}")
+
+    DEVIATION_THRESHHOLD = 0.2 # If there is an unsynchronization of more than 20% raise an exception
+    if not 1 - DEVIATION_THRESHHOLD <\
+          gyroscope_data_frame_count / video_frame_count < 1 + DEVIATION_THRESHHOLD :
+        raise UnsyncedCrudeDataException(DEVIATION_THRESHHOLD, None,
+            ("video" ,video_frame_count),("gyroscope data", gyroscope_data_frame_count))
+
+def preprocess(video_file, gyroscope_data:list):
+    processing_cleanup(get_default_input_path())
+    video_instance = in_memory_video_to_video_capture(video_file)
+    _refer_possible_crude_data_bugs(video_instance, gyroscope_data)
+
+    # Straigthen only the gyroscope since straightening the video is way more complex
+    # and anyway will be implemented in the client's proxy in the future.
+    prepared_gyroscope_data = straighten_gyroscope_data(video_instance, gyroscope_data)  
+    visual_snapshots, gyroscope_snapshots = take_snapshots(video_instance, prepared_gyroscope_data)
+    video_instance.release()
+    save_pictures(visual_snapshots, get_default_input_path())
+    return _get_positions(gyroscope_snapshots)
     

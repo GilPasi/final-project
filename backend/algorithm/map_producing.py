@@ -120,6 +120,7 @@ def process_predictions(seg_prediction, dep_prediction):
 def produce_map(video_file, gyroscope_data:list, debug = False):
     logger.info("Preprocessing start")
     positions = preprocess(video_file, gyroscope_data)
+    print("Positions are,", positions)
     logger.info("Start predicting")
 
     seg_prediction, dep_prediction = get_predictions()

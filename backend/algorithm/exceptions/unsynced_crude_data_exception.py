@@ -1,5 +1,4 @@
 import json
-
 class UnsyncedCrudeDataException(Exception):
     def __init__(self, threshold, message=None, *args):
         """
